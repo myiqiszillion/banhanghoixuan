@@ -39,11 +39,21 @@ export async function GET(request) {
             // Sanitize data for safety (hide full sensitive info if needed, but here we need to see it)
             debugResult.apiResponse = data;
 
-            if (data.transactions && orderCode) {
+            if (data.transactions) {
+                // Return top 5 transactions for debugging
+                debugResult.recentTransactions = data.transactions.slice(0, 5).map(tx => ({
+                    id: tx.id,
+                    date: tx.transaction_date,
+                    amount: tx.amount_in,
+                    content: tx.transaction_content,
+                    desc: tx.description
+                }));
+
                 const match = data.transactions.find(tx => {
                     const content = tx.transaction_content || tx.description || '';
-                    return content.toUpperCase().includes(orderCode.toUpperCase());
+                    return orderCode && content.toUpperCase().includes(orderCode.toUpperCase());
                 });
+
                 if (match) {
                     debugResult.matchFound = true;
                     debugResult.matchedTransaction = match;
