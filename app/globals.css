@@ -82,6 +82,41 @@ body {
   transition: all 0.3s ease;
 }
 
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  border: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: inherit;
+}
+
+.game-btn {
+  background: var(--fire-gradient);
+  color: #fff;
+  box-shadow: 0 0 10px rgba(255, 69, 0, 0.4);
+  animation: pulse 2s infinite;
+}
+
+.history-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.history-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.nav-btn:hover {
+  transform: translateY(-2px);
+}
+
 .header-glass {
   position: absolute;
   inset: 0;

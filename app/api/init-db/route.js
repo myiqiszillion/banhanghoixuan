@@ -1,11 +1,23 @@
 import { NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { db } from '@/lib/db'; // We can't import pool directly easily if not exported, let's just use pg here too or export pool from db.js
+import pg from 'pg';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+    if (!process.env.POSTGRES_URL) {
+        return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
+    }
+
+    const pool = new pg.Pool({
+        connectionString: process.env.POSTGRES_URL,
+        ssl: { rejectUnauthorized: false }
+    });
+
+    const client = await pool.connect();
+
     try {
-        await sql`
+        await client.query(`
             CREATE TABLE IF NOT EXISTS orders (
                 id SERIAL PRIMARY KEY,
                 order_code VARCHAR(50) UNIQUE NOT NULL,
@@ -17,12 +29,19 @@ export async function GET() {
                 total INTEGER NOT NULL,
                 tickets INTEGER DEFAULT 0,
                 status VARCHAR(50) DEFAULT 'pending',
+                delivered BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
-        `;
+            
+            -- Add column if it doesn't exist (for migration)
+            ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivered BOOLEAN DEFAULT FALSE;
+        `);
         return NextResponse.json({ message: 'Database initialized successfully' });
     } catch (error) {
         console.error('Init DB Error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
+    } finally {
+        client.release();
+        await pool.end();
     }
 }
