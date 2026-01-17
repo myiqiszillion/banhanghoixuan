@@ -94,6 +94,9 @@ export default function PaymentModal({ isOpen, onClose, orderData, onSuccess }) 
                     <p style={{ color: '#ff4444', fontWeight: 'bold', marginTop: '0.5rem', fontSize: '1.1rem' }}>
                         SAI NỘI DUNG SẼ MẤT TIỀN! ❌
                     </p>
+                    <p style={{ color: '#ff4444', fontWeight: 'bold', marginTop: '0.5rem', fontSize: '1rem', borderTop: '1px solid rgba(255,68,68,0.3)', paddingTop: '0.5rem' }}>
+                        ⚠️ CHUYỂN SAI SỐ TIỀN SẼ KHÔNG ĐƯỢC DUYỆT & KHÔNG HOÀN TIỀN!
+                    </p>
                 </div>
 
                 <div className="qr-container">
