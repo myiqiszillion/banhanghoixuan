@@ -69,14 +69,9 @@ export default function PaymentModal({ isOpen, onClose, orderData, onSuccess }) 
                         fontWeight: '800',
                         fontSize: '1.1rem',
                         marginBottom: '0.5rem',
-                    < p style={{
-                            color: '#ff4444',
-                            fontWeight: '800',
-                            fontSize: '1.1rem',
-                            marginBottom: '0.5rem',
-                            textTransform: 'uppercase',
-                            animation: 'pulse 1.5s infinite'
-                        }}>
+                        textTransform: 'uppercase',
+                        animation: 'pulse 1.5s infinite'
+                    }}>
                         ⚠️ CẢNH BÁO QUAN TRỌNG
                     </p>
                     <p style={{ color: '#fff', fontSize: '0.95rem' }}>
