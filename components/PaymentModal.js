@@ -14,11 +14,12 @@ export default function PaymentModal({ isOpen, onClose, orderData, onSuccess }) 
         if (isOpen && orderData) {
             setIsLoading(true);
 
-            // Format: 1011 [CODE] [NAME]
-            const rawContent = `1011 ${orderData.orderCode} ${removeVietnameseAccents(orderData.name)}`;
-            const transferContent = rawContent.trim(); // Ensure no extra spaces
+            // Format: Just the Order Code (simplest for matching)
+            const rawContent = orderData.orderCode;
+            const transferContent = rawContent.trim();
 
             // Generate URL
+            // des (description) = transferContent
             const url = `${CONFIG.sepay.qrUrl}?acc=${CONFIG.bankInfo.accountNumber}&bank=${CONFIG.bankInfo.bankCode}&amount=${orderData.total}&des=${encodeURIComponent(transferContent)}`;
             setQrUrl(url);
 
@@ -42,7 +43,7 @@ export default function PaymentModal({ isOpen, onClose, orderData, onSuccess }) 
 
     if (!isOpen || !orderData) return null;
 
-    const transferContent = `1011 ${orderData.orderCode} ${removeVietnameseAccents(orderData.name)}`;
+    const transferContent = orderData.orderCode;
 
     return (
         <div className={clsx("modal-overlay", { active: isOpen })}>
