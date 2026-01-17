@@ -105,6 +105,50 @@ export default function AdminPage() {
         }
     };
 
+    // Delete Single
+    const handleDelete = async (orderCode) => {
+        if (!confirm('Bạn có chắc chắn muốn xóa đơn hàng này? Không thể khôi phục!')) return;
+
+        try {
+            const res = await fetch('/api/orders/delete', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderCode })
+            });
+            if (res.ok) {
+                setOrders(orders.filter(o => o.orderCode !== orderCode));
+            } else {
+                alert('Lỗi khi xóa đơn hàng');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Lỗi hệ thống');
+        }
+    };
+
+    // Clear All
+    const handleClearAll = async () => {
+        if (!confirm('⚠️ CẢNH BÁO: Bạn có chắc chắn muốn xóa TẤT CẢ đơn hàng?\nHành động này không thể khôi phục!')) return;
+        if (!confirm('Xác nhận lần 2: Xóa toàn bộ dữ liệu?')) return;
+
+        try {
+            const res = await fetch('/api/orders/delete', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ all: true })
+            });
+            if (res.ok) {
+                setOrders([]);
+                alert('Đã xóa tất cả dữ liệu');
+            } else {
+                alert('Lỗi khi xóa dữ liệu');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Lỗi hệ thống');
+        }
+    };
+
     // Stats
     const stats = {
         total: orders.length,
@@ -171,6 +215,14 @@ export default function AdminPage() {
                         <button className={`filter-btn ${filter === 'pending' ? 'active' : ''}`} onClick={() => setFilter('pending')}>Chờ thanh toán</button>
                         <button className={`filter-btn ${filter === 'paid' ? 'active' : ''}`} onClick={() => setFilter('paid')}>Đã thanh toán</button>
                         <button className={`filter-btn ${filter === 'delivered' ? 'active' : ''}`} onClick={() => setFilter('delivered')}>✅ Đã giao</button>
+
+                        <button
+                            className="filter-btn"
+                            style={{ background: 'rgba(255, 68, 68, 0.2)', color: '#ff4444', border: '1px solid currentColor' }}
+                            onClick={handleClearAll}
+                        >
+                            🗑️ XÓA TẤT CẢ
+                        </button>
                     </div>
                     <button className="admin-btn export-btn" onClick={handleExport} style={{ maxWidth: '200px' }}>
                         📥 Xuất Excel
@@ -197,6 +249,13 @@ export default function AdminPage() {
                                     <span className={`order-status ${order.status}`}>
                                         {order.status === 'paid' ? 'Đã Thanh Toán' : 'Chờ Thanh Toán'}
                                     </span>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); handleDelete(order.orderCode); }}
+                                        style={{ background: 'none', border: 'none', fontSize: '1rem', cursor: 'pointer', padding: '0.2rem' }}
+                                        title="Xóa đơn hàng"
+                                    >
+                                        ❌
+                                    </button>
                                 </div>
                             </div>
 
