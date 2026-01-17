@@ -22,7 +22,16 @@ export async function GET(request) {
         }
 
         // 2. Check SePay API
+        if (!CONFIG.sepay.apiKey) {
+            console.error('SePay API Key is missing');
+            // Allow debugging: return indication
+            return NextResponse.json({ paid: false, error: 'Configuration Error: Missing API Key' });
+        }
+
         if (CONFIG.sepay.apiKey) {
+            // Log for debugging
+            console.log(`Checking SePay for code: ${orderCode}`);
+
             const res = await fetch(`${CONFIG.sepay.apiUrl}?account_number=${CONFIG.bankInfo.accountNumber}&limit=20`, {
                 headers: {
                     'Authorization': `Bearer ${CONFIG.sepay.apiKey}`,
@@ -36,8 +45,12 @@ export async function GET(request) {
                     const matching = data.transactions.find(tx => {
                         const content = tx.transaction_content || tx.description || '';
                         // Check strictly for orderCode
-                        return content.toUpperCase().includes(orderCode.toUpperCase()) &&
-                            parseFloat(tx.amount_in) >= (order ? order.total : 0);
+                        const isMatch = content.toUpperCase().includes(orderCode.toUpperCase());
+                        if (isMatch) {
+                            console.log(`Found match: ${content}, Amount: ${tx.amount_in}`);
+                        }
+
+                        return isMatch && parseFloat(tx.amount_in) >= (order ? order.total : 0);
                     });
 
                     if (matching) {
@@ -45,10 +58,17 @@ export async function GET(request) {
                         // Update status in DB
                         if (order) {
                             order.status = 'paid';
-                            await db.addOrder(order);
+                            // We need to re-save. db.addOrder handles update.
+                            try {
+                                await db.addOrder(order);
+                            } catch (dbError) {
+                                console.error('Failed to update order status in DB:', dbError);
+                            }
                         }
                     }
                 }
+            } else {
+                console.error('SePay API Error:', res.status, res.statusText);
             }
         }
 
