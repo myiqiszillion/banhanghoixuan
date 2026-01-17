@@ -76,13 +76,41 @@ export default function AdminPage() {
     };
 
     // Filter Logic
-    const filteredOrders = filter === 'all' ? orders : orders.filter(o => o.status === filter);
+    const filteredOrders = orders.filter(o => {
+        if (filter === 'all') return true;
+        if (filter === 'pending') return o.status === 'pending';
+        if (filter === 'paid') return o.status === 'paid';
+        if (filter === 'delivered') return o.delivered === true; // New filter
+        if (filter === 'undelivered') return !o.delivered; // New filter
+        return true;
+    });
+
+    // Toggle Delivery
+    const toggleDelivery = async (orderCode, currentStatus) => {
+        const newStatus = !currentStatus;
+        // Optimistic UI update
+        const oldOrders = [...orders];
+        setOrders(orders.map(o => o.orderCode === orderCode ? { ...o, delivered: newStatus } : o));
+
+        try {
+            const res = await fetch('/api/orders/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderCode, delivered: newStatus })
+            });
+            if (!res.ok) throw new Error('Failed to update');
+        } catch (e) {
+            alert('Lỗi cập nhật trạng thái');
+            setOrders(oldOrders); // Revert
+        }
+    };
 
     // Stats
     const stats = {
         total: orders.length,
         pending: orders.filter(o => o.status === 'pending').length,
-        paid: orders.filter(o => o.status === 'paid').length
+        paid: orders.filter(o => o.status === 'paid').length,
+        delivered: orders.filter(o => o.delivered).length // New stat
     };
 
     if (!isAuthenticated) {
@@ -115,7 +143,7 @@ export default function AdminPage() {
         <main style={{ minHeight: '100vh' }}>
             <Header />
             <div style={{ padding: '120px 2rem 60px', maxWidth: '1200px', margin: '0 auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                     <h1 style={{ fontSize: '2rem', fontWeight: 'bold' }}>🔐 QUẢN LÝ ĐƠN HÀNG</h1>
                     <button onClick={() => setIsAuthenticated(false)} className="clear-btn" style={{ padding: '0.5rem 1rem', borderRadius: '8px' }}>Thoát</button>
                 </div>
@@ -124,15 +152,15 @@ export default function AdminPage() {
                 <div className="admin-stats">
                     <div className="stat-card">
                         <div className="stat-value total">{stats.total}</div>
-                        <div className="stat-label">Tổng đơn hàng</div>
-                    </div>
-                    <div className="stat-card">
-                        <div className="stat-value pending">{stats.pending}</div>
-                        <div className="stat-label">Chờ thanh toán</div>
+                        <div className="stat-label">Tổng đơn</div>
                     </div>
                     <div className="stat-card">
                         <div className="stat-value paid">{stats.paid}</div>
-                        <div className="stat-label">Đã thanh toán</div>
+                        <div className="stat-label">Đã thu tiền</div>
+                    </div>
+                    <div className="stat-card" style={{ border: '1px solid #00d26a' }}>
+                        <div className="stat-value" style={{ color: '#00d26a' }}>{stats.delivered}</div>
+                        <div className="stat-label">Đã giao hàng</div>
                     </div>
                 </div>
 
@@ -142,6 +170,7 @@ export default function AdminPage() {
                         <button className={`filter-btn ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>Tất cả</button>
                         <button className={`filter-btn ${filter === 'pending' ? 'active' : ''}`} onClick={() => setFilter('pending')}>Chờ thanh toán</button>
                         <button className={`filter-btn ${filter === 'paid' ? 'active' : ''}`} onClick={() => setFilter('paid')}>Đã thanh toán</button>
+                        <button className={`filter-btn ${filter === 'delivered' ? 'active' : ''}`} onClick={() => setFilter('delivered')}>✅ Đã giao</button>
                     </div>
                     <button className="admin-btn export-btn" onClick={handleExport} style={{ maxWidth: '200px' }}>
                         📥 Xuất Excel
@@ -156,39 +185,51 @@ export default function AdminPage() {
                             <p>Không có đơn hàng nào</p>
                         </div>
                     ) : filteredOrders.map(order => (
-                        <div key={order.orderCode} className="order-card">
+                        <div key={order.orderCode} className="order-card" style={{ borderLeft: order.delivered ? '4px solid #00d26a' : '4px solid rgba(255,255,255,0.1)' }}>
                             <div className="order-header">
-                                <span className="order-code">{order.orderCode}</span>
-                                <span className={`order-status ${order.status}`}>
-                                    {order.status === 'paid' ? 'Đã thanh toán' : 'Chờ thanh toán'}
-                                </span>
+                                <div>
+                                    <span className="order-code">{order.orderCode}</span>
+                                    <span style={{ marginLeft: '1rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>
+                                        {new Date(order.timestamp).toLocaleString('vi-VN')}
+                                    </span>
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <span className={`order-status ${order.status}`}>
+                                        {order.status === 'paid' ? 'Đã Thanh Toán' : 'Chờ Thanh Toán'}
+                                    </span>
+                                </div>
                             </div>
+
                             <div className="order-details">
                                 <div className="order-detail">
                                     <span className="detail-label">👤</span>
-                                    <span className="detail-value">{order.name}</span>
-                                </div>
-                                <div className="order-detail">
-                                    <span className="detail-label">📞</span>
-                                    <span className="detail-value">{order.phone}</span>
-                                </div>
-                                <div className="order-detail">
-                                    <span className="detail-label">🏫</span>
-                                    <span className="detail-value">{order.class}</span>
+                                    <span className="detail-value">{order.name} - {order.phone}</span>
                                 </div>
                                 <div className="order-detail">
                                     <span className="detail-label">🍡</span>
-                                    <span className="detail-value">{order.quantity} phần - {formatCurrency(order.total)}</span>
+                                    <span className="detail-value">{order.quantity} phần ({order.class})</span>
                                 </div>
                                 {order.tickets > 0 && (
                                     <div className="order-detail">
-                                        <span className="detail-label">🎮</span>
-                                        <span className="detail-value">{order.tickets} vé mini game</span>
+                                        <span className="detail-label">🎟️</span>
+                                        <span className="detail-value" style={{ color: '#667eea', fontWeight: 'bold' }}>{order.tickets} vé</span>
                                     </div>
                                 )}
-                            </div>
-                            <div className="order-time" style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginTop: '0.5rem' }}>
-                                🕐 {new Date(order.timestamp).toLocaleString('vi-VN')}
+                                <div className="order-detail" style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px dashed rgba(255,255,255,0.1)', justifyContent: 'space-between', width: '100%' }}>
+                                    <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#ffcc00' }}>{formatCurrency(order.total)}</span>
+
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'cursor', background: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.8rem', borderRadius: '50px' }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={!!order.delivered}
+                                            onChange={() => toggleDelivery(order.orderCode, order.delivered)}
+                                            style={{ width: '18px', height: '18px' }}
+                                        />
+                                        <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: order.delivered ? '#00d26a' : 'rgba(255,255,255,0.6)' }}>
+                                            {order.delivered ? 'ĐÃ GIAO HÀNG' : 'CHƯA GIAO'}
+                                        </span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     ))}
