@@ -10,6 +10,8 @@ export default function AdminPage() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [password, setPassword] = useState('');
     const [orders, setOrders] = useState([]);
+    const [transactions, setTransactions] = useState([]);
+    const [activeTab, setActiveTab] = useState('orders'); // 'orders' | 'transactions'
     const [filter, setFilter] = useState('all');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -18,10 +20,14 @@ export default function AdminPage() {
     useEffect(() => {
         if (isAuthenticated) {
             fetchOrders();
-            const interval = setInterval(fetchOrders, 10000); // Auto refresh
+            fetchTransactions();
+            const interval = setInterval(() => {
+                fetchOrders();
+                if (activeTab === 'transactions') fetchTransactions();
+            }, 10000); // Auto refresh
             return () => clearInterval(interval);
         }
-    }, [isAuthenticated]);
+    }, [isAuthenticated, activeTab]);
 
     const handleLogin = (e) => {
         e.preventDefault();
@@ -44,6 +50,18 @@ export default function AdminPage() {
             console.error(e);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const fetchTransactions = async () => {
+        try {
+            const res = await fetch(`/api/admin/transactions?password=${CONFIG.admin.password}`);
+            const data = await res.json();
+            if (data.transactions) {
+                setTransactions(data.transactions);
+            }
+        } catch (e) {
+            console.error('Failed to fetch transactions', e);
         }
     };
 
@@ -187,112 +205,170 @@ export default function AdminPage() {
         <main style={{ minHeight: '100vh' }}>
             <Header />
             <div style={{ padding: '120px 2rem 60px', maxWidth: '1200px', margin: '0 auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
                     <h1 style={{ fontSize: '2rem', fontWeight: 'bold' }}>🔐 QUẢN LÝ ĐƠN HÀNG</h1>
                     <button onClick={() => setIsAuthenticated(false)} className="clear-btn" style={{ padding: '0.5rem 1rem', borderRadius: '8px' }}>Thoát</button>
                 </div>
 
-                {/* Stats */}
-                <div className="admin-stats">
-                    <div className="stat-card">
-                        <div className="stat-value total">{stats.total}</div>
-                        <div className="stat-label">Tổng đơn</div>
-                    </div>
-                    <div className="stat-card">
-                        <div className="stat-value paid">{stats.paid}</div>
-                        <div className="stat-label">Đã thu tiền</div>
-                    </div>
-                    <div className="stat-card" style={{ border: '1px solid #00d26a' }}>
-                        <div className="stat-value" style={{ color: '#00d26a' }}>{stats.delivered}</div>
-                        <div className="stat-label">Đã giao hàng</div>
-                    </div>
-                </div>
-
-                {/* Filters & Actions */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
-                    <div className="admin-filters" style={{ marginBottom: 0 }}>
-                        <button className={`filter-btn ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>Tất cả</button>
-                        <button className={`filter-btn ${filter === 'pending' ? 'active' : ''}`} onClick={() => setFilter('pending')}>Chờ thanh toán</button>
-                        <button className={`filter-btn ${filter === 'paid' ? 'active' : ''}`} onClick={() => setFilter('paid')}>Đã thanh toán</button>
-                        <button className={`filter-btn ${filter === 'delivered' ? 'active' : ''}`} onClick={() => setFilter('delivered')}>✅ Đã giao</button>
-
-                        <button
-                            className="filter-btn"
-                            style={{ background: 'rgba(255, 68, 68, 0.2)', color: '#ff4444', border: '1px solid currentColor' }}
-                            onClick={handleClearAll}
-                        >
-                            🗑️ XÓA TẤT CẢ
-                        </button>
-                    </div>
-                    <button className="admin-btn export-btn" onClick={handleExport} style={{ maxWidth: '200px' }}>
-                        📥 Xuất Excel
+                {/* TABS */}
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+                    <button
+                        onClick={() => setActiveTab('orders')}
+                        className={`filter-btn ${activeTab === 'orders' ? 'active' : ''}`}
+                        style={{ fontSize: '1.2rem', padding: '0.8rem 1.5rem', flex: 1 }}
+                    >
+                        📦 Đơn Hàng
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('transactions')}
+                        className={`filter-btn ${activeTab === 'transactions' ? 'active' : ''}`}
+                        style={{ fontSize: '1.2rem', padding: '0.8rem 1.5rem', flex: 1 }}
+                    >
+                        💸 Lịch Sử Giao Dịch
                     </button>
                 </div>
 
-                {/* List */}
-                <div className="orders-list" style={{ maxHeight: '600px' }}>
-                    {filteredOrders.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '3rem', color: 'rgba(255,255,255,0.5)' }}>
-                            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
-                            <p>Không có đơn hàng nào</p>
-                        </div>
-                    ) : filteredOrders.map(order => (
-                        <div key={order.orderCode} className="order-card" style={{ borderLeft: order.delivered ? '4px solid #00d26a' : '4px solid rgba(255,255,255,0.1)' }}>
-                            <div className="order-header">
-                                <div>
-                                    <span className="order-code">{order.orderCode}</span>
-                                    <span style={{ marginLeft: '1rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>
-                                        {new Date(order.timestamp).toLocaleString('vi-VN')}
-                                    </span>
-                                </div>
-                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                    <span className={`order-status ${order.status}`}>
-                                        {order.status === 'paid' ? 'Đã Thanh Toán' : 'Chờ Thanh Toán'}
-                                    </span>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); handleDelete(order.orderCode); }}
-                                        style={{ background: 'none', border: 'none', fontSize: '1rem', cursor: 'pointer', padding: '0.2rem' }}
-                                        title="Xóa đơn hàng"
-                                    >
-                                        ❌
-                                    </button>
-                                </div>
+                {activeTab === 'orders' ? (
+                    <>
+                        {/* Stats */}
+                        <div className="admin-stats">
+                            <div className="stat-card">
+                                <div className="stat-value total">{stats.total}</div>
+                                <div className="stat-label">Tổng đơn</div>
                             </div>
+                            <div className="stat-card">
+                                <div className="stat-value paid">{stats.paid}</div>
+                                <div className="stat-label">Đã thu tiền</div>
+                            </div>
+                            <div className="stat-card" style={{ border: '1px solid #00d26a' }}>
+                                <div className="stat-value" style={{ color: '#00d26a' }}>{stats.delivered}</div>
+                                <div className="stat-label">Đã giao hàng</div>
+                            </div>
+                        </div>
 
-                            <div className="order-details">
-                                <div className="order-detail">
-                                    <span className="detail-label">👤</span>
-                                    <span className="detail-value">{order.name} - {order.phone}</span>
+                        {/* Filters & Actions */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+                            <div className="admin-filters" style={{ marginBottom: 0 }}>
+                                <button className={`filter-btn ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>Tất cả</button>
+                                <button className={`filter-btn ${filter === 'pending' ? 'active' : ''}`} onClick={() => setFilter('pending')}>Chờ thanh toán</button>
+                                <button className={`filter-btn ${filter === 'paid' ? 'active' : ''}`} onClick={() => setFilter('paid')}>Đã thanh toán</button>
+                                <button className={`filter-btn ${filter === 'delivered' ? 'active' : ''}`} onClick={() => setFilter('delivered')}>✅ Đã giao</button>
+
+                                <button
+                                    className="filter-btn"
+                                    style={{ background: 'rgba(255, 68, 68, 0.2)', color: '#ff4444', border: '1px solid currentColor' }}
+                                    onClick={handleClearAll}
+                                >
+                                    🗑️ XÓA TẤT CẢ
+                                </button>
+                            </div>
+                            <button className="admin-btn export-btn" onClick={handleExport} style={{ maxWidth: '200px' }}>
+                                📥 Xuất Excel
+                            </button>
+                        </div>
+
+                        {/* List */}
+                        <div className="orders-list" style={{ maxHeight: '600px' }}>
+                            {filteredOrders.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '3rem', color: 'rgba(255,255,255,0.5)' }}>
+                                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
+                                    <p>Không có đơn hàng nào</p>
                                 </div>
-                                <div className="order-detail">
-                                    <span className="detail-label">🍡</span>
-                                    <span className="detail-value">{order.quantity} phần ({order.class})</span>
-                                </div>
-                                {order.tickets > 0 && (
-                                    <div className="order-detail">
-                                        <span className="detail-label">🎟️</span>
-                                        <span className="detail-value" style={{ color: '#667eea', fontWeight: 'bold' }}>{order.tickets} vé</span>
+                            ) : filteredOrders.map(order => (
+                                <div key={order.orderCode} className="order-card" style={{ borderLeft: order.delivered ? '4px solid #00d26a' : '4px solid rgba(255,255,255,0.1)' }}>
+                                    <div className="order-header">
+                                        <div>
+                                            <span className="order-code">{order.orderCode}</span>
+                                            <span style={{ marginLeft: '1rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>
+                                                {new Date(order.timestamp).toLocaleString('vi-VN')}
+                                            </span>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                            <span className={`order-status ${order.status}`}>
+                                                {order.status === 'paid' ? 'Đã Thanh Toán' : 'Chờ Thanh Toán'}
+                                            </span>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleDelete(order.orderCode); }}
+                                                style={{ background: 'none', border: 'none', fontSize: '1rem', cursor: 'pointer', padding: '0.2rem' }}
+                                                title="Xóa đơn hàng"
+                                            >
+                                                ❌
+                                            </button>
+                                        </div>
                                     </div>
-                                )}
-                                <div className="order-detail" style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px dashed rgba(255,255,255,0.1)', justifyContent: 'space-between', width: '100%' }}>
-                                    <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#ffcc00' }}>{formatCurrency(order.total)}</span>
 
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'cursor', background: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.8rem', borderRadius: '50px' }}>
-                                        <input
-                                            type="checkbox"
-                                            checked={!!order.delivered}
-                                            onChange={() => toggleDelivery(order.orderCode, order.delivered)}
-                                            style={{ width: '18px', height: '18px' }}
-                                        />
-                                        <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: order.delivered ? '#00d26a' : 'rgba(255,255,255,0.6)' }}>
-                                            {order.delivered ? 'ĐÃ GIAO HÀNG' : 'CHƯA GIAO'}
-                                        </span>
-                                    </label>
+                                    <div className="order-details">
+                                        <div className="order-detail">
+                                            <span className="detail-label">👤</span>
+                                            <span className="detail-value">{order.name} - {order.phone}</span>
+                                        </div>
+                                        <div className="order-detail">
+                                            <span className="detail-label">🍡</span>
+                                            <span className="detail-value">{order.quantity} phần ({order.class})</span>
+                                        </div>
+                                        {order.tickets > 0 && (
+                                            <div className="order-detail">
+                                                <span className="detail-label">🎟️</span>
+                                                <span className="detail-value" style={{ color: '#667eea', fontWeight: 'bold' }}>{order.tickets} vé</span>
+                                            </div>
+                                        )}
+                                        <div className="order-detail" style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px dashed rgba(255,255,255,0.1)', justifyContent: 'space-between', width: '100%' }}>
+                                            <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#ffcc00' }}>{formatCurrency(order.total)}</span>
+
+                                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', background: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.8rem', borderRadius: '50px' }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!order.delivered}
+                                                    onChange={() => toggleDelivery(order.orderCode, order.delivered)}
+                                                    style={{ width: '18px', height: '18px' }}
+                                                />
+                                                <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: order.delivered ? '#00d26a' : 'rgba(255,255,255,0.6)' }}>
+                                                    {order.delivered ? 'ĐÃ GIAO HÀNG' : 'CHƯA GIAO'}
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
+                    </>
+                ) : (
+                    // TRANSACTIONS TAB
+                    <div className="orders-list">
+                        <div style={{ marginBottom: '1rem', color: '#aaa', fontStyle: 'italic' }}>
+                            * Hiển thị 50 giao dịch gần nhất từ SePay
+                        </div>
+                        {transactions.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: '3rem', color: 'rgba(255,255,255,0.5)' }}>
+                                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💸</div>
+                                <p>Không có giao dịch nào</p>
+                            </div>
+                        ) : (
+                            <div style={{ overflowX: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', color: 'white' }}>
+                                    <thead>
+                                        <tr style={{ borderBottom: '2px solid rgba(255,255,255,0.1)', textAlign: 'left' }}>
+                                            <th style={{ padding: '1rem' }}>Thời gian</th>
+                                            <th style={{ padding: '1rem' }}>Số tiền</th>
+                                            <th style={{ padding: '1rem' }}>Nội dung</th>
+                                            <th style={{ padding: '1rem' }}>Số tham chiếu</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {transactions.map(tx => (
+                                            <tr key={tx.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.02)' }}>
+                                                <td style={{ padding: '1rem', color: '#aaa' }}>{tx.transaction_date}</td>
+                                                <td style={{ padding: '1rem', color: '#00d26a', fontWeight: 'bold' }}>+{formatCurrency(tx.amount_in)}</td>
+                                                <td style={{ padding: '1rem', fontFamily: 'monospace' }}>{tx.transaction_content}</td>
+                                                <td style={{ padding: '1rem', fontSize: '0.9rem', color: '#aaa' }}>{tx.reference_number}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
             <Footer />
         </main>
