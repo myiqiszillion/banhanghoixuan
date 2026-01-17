@@ -68,7 +68,7 @@ export default function AdminPage() {
     const handleExport = () => {
         if (orders.length === 0) return alert('Không có dữ liệu!');
 
-        const headers = ['Mã đơn', 'Họ tên', 'SĐT', 'Lớp', 'Số lượng', 'Tổng tiền', 'Vé mini game', 'Trạng thái', 'Thời gian'];
+        const headers = ['Mã đơn', 'Họ tên', 'SĐT', 'Lớp', 'Số lượng', 'Tổng tiền', 'Vé mini game', 'Tặng thêm', 'Trạng thái', 'Thời gian'];
         const formatDateTime = (iso) => new Date(iso).toLocaleString('vi-VN');
 
         const rows = orders.map(o => [
@@ -79,6 +79,7 @@ export default function AdminPage() {
             o.quantity,
             o.total,
             o.tickets || 0,
+            o.freePortions || 0,
             o.status === 'paid' ? 'Đã thanh toán' : 'Chờ thanh toán',
             formatDateTime(o.timestamp)
         ]);
@@ -311,6 +312,13 @@ export default function AdminPage() {
                                                 <span className="detail-label">🎟️</span>
                                                 <span className="detail-value" style={{ color: '#667eea', fontWeight: 'bold' }}>{order.tickets} vé</span>
                                             </div>
+
+                                        )}
+                                        {order.freePortions > 0 && (
+                                            <div className="order-detail">
+                                                <span className="detail-label">🎁</span>
+                                                <span className="detail-value" style={{ color: '#ffcc00', fontWeight: 'bold' }}>+{order.freePortions} phần tặng</span>
+                                            </div>
                                         )}
                                         <div className="order-detail" style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px dashed rgba(255,255,255,0.1)', justifyContent: 'space-between', width: '100%' }}>
                                             <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#ffcc00' }}>{formatCurrency(order.total)}</span>
@@ -371,6 +379,6 @@ export default function AdminPage() {
                 )}
             </div>
             <Footer />
-        </main>
+        </main >
     );
 }

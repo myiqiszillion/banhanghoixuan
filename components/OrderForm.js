@@ -27,6 +27,8 @@ export default function OrderForm() {
         ? Math.floor(formData.quantity / CONFIG.promo.minQuantityForTicket) * CONFIG.promo.ticketsPerPromo
         : 0;
 
+    const freePortions = Math.floor(formData.quantity / CONFIG.promo.buyXGet1Free);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -37,6 +39,7 @@ export default function OrderForm() {
             orderCode,
             total,
             tickets,
+            freePortions,
             status: 'pending',
             timestamp: new Date().toISOString()
         };
@@ -170,6 +173,12 @@ export default function OrderForm() {
                                 <span className="promo-tickets">+{tickets} vé mini game</span>
                             </div>
                         )}
+                        {freePortions > 0 && (
+                            <div className="summary-row promo-row">
+                                <span>🎁 Tặng thêm:</span>
+                                <span className="promo-tickets">+{freePortions} phần</span>
+                            </div>
+                        )}
                         <div className="summary-divider"></div>
                         <div className="summary-row total-row">
                             <span>TỔNG CỘNG:</span>
@@ -209,6 +218,12 @@ export default function OrderForm() {
                             <div style={{ background: 'rgba(102, 126, 234, 0.2)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(102, 126, 234, 0.3)', marginBottom: '1.5rem' }}>
                                 <p style={{ color: '#fff', fontWeight: 'bold' }}>🎁 BẠN NHẬN ĐƯỢC {currentOrder.tickets} VÉ MINI GAME</p>
                                 <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)' }}>Hãy chụp màn hình này lại để đổi vé nhé!</p>
+                            </div>
+                        )}
+                        {currentOrder?.freePortions > 0 && (
+                            <div style={{ background: 'rgba(255, 107, 53, 0.1)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(255, 107, 53, 0.3)', marginBottom: '1.5rem' }}>
+                                <p style={{ color: '#fff', fontWeight: 'bold' }}>🎁 BẠN ĐƯỢC TẶNG THÊM {currentOrder.freePortions} PHẦN ĂN</p>
+                                <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)' }}>Mua 10 tặng 1 - Quá hời!</p>
                             </div>
                         )}
                         <button className="submit-btn" style={{ width: '100%', marginTop: 0 }} onClick={closeSuccessModal}>ĐÓNG</button>
