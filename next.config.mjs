@@ -1,11 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config) => {
-    config.externals.push({
-      "pg-native": "commonjs pg-native",
-    });
-    return config;
-  },
+  /* config options here */
 };
 
 export default nextConfig;
