@@ -55,7 +55,7 @@ export default function AdminPage() {
 
     const fetchTransactions = async () => {
         try {
-            const res = await fetch(`/api/admin/transactions?password=${CONFIG.admin.password}`);
+            const res = await fetch(`/api/admin/transactions?password=${CONFIG.admin.password}&t=${Date.now()}`);
             const data = await res.json();
             if (data.transactions) {
                 setTransactions(data.transactions);

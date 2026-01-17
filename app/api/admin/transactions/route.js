@@ -21,7 +21,8 @@ export async function GET(request) {
             headers: {
                 'Authorization': `Bearer ${CONFIG.sepay.apiKey}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            cache: 'no-store'
         });
 
         if (!res.ok) {
