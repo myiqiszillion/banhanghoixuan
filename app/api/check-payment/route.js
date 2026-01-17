@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { CONFIG } from '@/lib/config';
 import { db } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const orderCode = searchParams.get('code');
