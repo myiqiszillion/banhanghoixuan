@@ -71,65 +71,188 @@ body {
 }
 
 /* ===== Header ===== */
+/* ===== Header ===== */
 .header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 100;
-  padding: 1rem 2rem;
-  background: rgba(10, 10, 15, 0.8);
+  padding: 0.8rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.header-glass {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 15, 0.6);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--card-border);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: -1;
 }
 
 .header-content {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
+  position: relative;
 }
 
+.header-left,
+.header-right {
+  flex: 1;
+  display: flex;
+}
+
+.header-right {
+  justify-content: flex-end;
+}
+
+.header-center {
+  flex: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Badge Styles */
 .school-badge,
-.event-badge,
-.class-badge {
+.event-badge {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 50px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+}
+
+.school-badge:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
 }
 
 .event-badge {
   background: var(--fire-gradient);
   border: none;
   color: #fff;
-  animation: pulse 2s infinite;
-}
-
-.class-badge {
-  background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
-  border: none;
-  color: #1a1a2e;
   font-weight: 700;
+  box-shadow: 0 0 15px rgba(255, 69, 0, 0.3);
+  animation: badgePulse 2s infinite;
 }
 
-@keyframes pulse {
+@keyframes badgePulse {
 
   0%,
   100% {
     transform: scale(1);
+    box-shadow: 0 0 15px rgba(255, 69, 0, 0.3);
   }
 
   50% {
-    transform: scale(1.02);
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(255, 69, 0, 0.5);
+  }
+}
+
+/* Center Title Styles */
+.main-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0;
+  line-height: 1;
+}
+
+.class-name {
+  font-family: var(--font-be-vietnam-pro);
+  font-size: 2rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  position: relative;
+}
+
+.class-name::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -0.6rem;
+  width: 2px;
+  height: 70%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-50%) skewX(-15deg);
+}
+
+.slogan {
+  font-family: 'Montserrat', sans-serif;
+  /* Fallback font */
+  font-size: 2.2rem;
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #ff4d4d 0%, #f9cb28 50%, #ff4d4d 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shine 3s linear infinite;
+  letter-spacing: -1px;
+  filter: drop-shadow(0 0 15px rgba(255, 77, 77, 0.4));
+}
+
+@keyframes shine {
+  to {
+    background-position: 200% center;
+  }
+}
+
+/* Responsive adjustments */
+.mobile-hide {
+  display: inline;
+}
+
+.desktop-hide {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0.5rem 1rem;
+  }
+
+  .class-name {
+    font-size: 1.2rem;
+  }
+
+  .class-name::after {
+    right: -0.5rem;
+  }
+
+  .slogan {
+    font-size: 1.3rem;
+    letter-spacing: 0;
+  }
+
+  .mobile-hide {
+    display: none;
+  }
+
+  .desktop-hide {
+    display: inline;
+  }
+
+  .school-badge,
+  .event-badge {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
   }
 }
 
