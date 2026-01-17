@@ -14,10 +14,15 @@ export async function GET(request) {
         let isPaid = false;
 
         // 1. Check DB first (manual update by admin)
+        // 1. Check DB first
         const orders = await db.getAllOrders();
-        let order = orders.find(o => o.orderCode === orderCode);
+        const order = orders.find(o => o.orderCode === orderCode);
 
-        if (order && order.status === 'paid') {
+        if (!order) {
+            return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+        }
+
+        if (order.status === 'paid') {
             return NextResponse.json({ paid: true });
         }
 
@@ -52,7 +57,7 @@ export async function GET(request) {
                         const txAmount = parseFloat(txAmountStr);
 
                         // Compare
-                        return isMatch && txAmount >= (order ? order.total : 0);
+                        return isMatch && txAmount >= order.total;
                     });
 
                     if (matching) {
