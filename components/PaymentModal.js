@@ -72,7 +72,7 @@ export default function PaymentModal({ isOpen, onClose, orderData, onSuccess }) 
                         textTransform: 'uppercase',
                         animation: 'pulse 1.5s infinite'
                     }}>
-                        ⚠️ CẢNH BÁO QUAN TRỌNG
+                        ⚠️ QUAN TRỌNG: CHỈ GHI MÃ ĐƠN
                     </p>
                     <p style={{ color: '#fff', fontSize: '0.95rem' }}>
                         NỘI DUNG CHUYỂN KHOẢN PHẢI CHÍNH XÁC:<br />
