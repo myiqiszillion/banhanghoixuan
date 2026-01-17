@@ -64,7 +64,15 @@ export default function OrderForm() {
     const handlePaymentSuccess = () => {
         setPaymentModalOpen(false);
         setSuccessModalOpen(true);
-        // Reset form logic could go here, or after closing success modal
+
+        // Save to local storage
+        if (currentOrder) {
+            import('@/lib/storage').then(({ saveOrderLocally }) => {
+                // Ensure status is up to date (paid) if it came from payment modal success
+                const orderToSave = { ...currentOrder, status: 'paid' };
+                saveOrderLocally(orderToSave);
+            });
+        }
     };
 
     const closeSuccessModal = () => {
