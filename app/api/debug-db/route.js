@@ -17,8 +17,16 @@ export async function GET() {
     try {
         if (!process.env.POSTGRES_URL) throw new Error('POSTGRES_URL is missing');
 
+        // Fix: Remove sslmode from query
+        let connectionString = process.env.POSTGRES_URL;
+        try {
+            const url = new URL(process.env.POSTGRES_URL);
+            url.searchParams.delete('sslmode');
+            connectionString = url.toString();
+        } catch (e) { }
+
         const pool = new pg.Pool({
-            connectionString: process.env.POSTGRES_URL,
+            connectionString,
             ssl: { rejectUnauthorized: false },
             connectionTimeoutMillis: 5000 // Fail fast
         });

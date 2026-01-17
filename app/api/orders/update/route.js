@@ -21,8 +21,16 @@ export async function POST(request) {
             return NextResponse.json({ error: 'DB not configured' }, { status: 500 });
         }
 
+        // Fix: Remove sslmode from query
+        let connectionString = process.env.POSTGRES_URL;
+        try {
+            const url = new URL(process.env.POSTGRES_URL);
+            url.searchParams.delete('sslmode');
+            connectionString = url.toString();
+        } catch (e) { }
+
         const pool = new pg.Pool({
-            connectionString: process.env.POSTGRES_URL,
+            connectionString,
             ssl: { rejectUnauthorized: false }
         });
 
