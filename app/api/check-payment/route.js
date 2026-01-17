@@ -46,11 +46,16 @@ export async function GET(request) {
                         const content = tx.transaction_content || tx.description || '';
                         // Check strictly for orderCode
                         const isMatch = content.toUpperCase().includes(orderCode.toUpperCase());
+
+                        // Sanitize amount (remove commas if present)
+                        const txAmountStr = String(tx.amount_in).replace(/,/g, '');
+                        const txAmount = parseFloat(txAmountStr);
+
                         if (isMatch) {
-                            console.log(`Found match: ${content}, Amount: ${tx.amount_in}`);
+                            console.log(`Found match: ${content}, Amount Raw: ${tx.amount_in}, Parsed: ${txAmount}`);
                         }
 
-                        return isMatch && parseFloat(tx.amount_in) >= (order ? order.total : 0);
+                        return isMatch && txAmount >= (order ? order.total : 0);
                     });
 
                     if (matching) {
