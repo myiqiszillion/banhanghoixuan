@@ -29,8 +29,6 @@ export async function GET(request) {
         }
 
         if (CONFIG.sepay.apiKey) {
-            // Log for debugging
-            console.log(`Checking SePay for code: ${orderCode}`);
 
             const res = await fetch(`${CONFIG.sepay.apiUrl}?account_number=${CONFIG.bankInfo.accountNumber}&limit=20`, {
                 headers: {
@@ -52,10 +50,6 @@ export async function GET(request) {
                         // Example: "20.000" -> "20000", "20,000" -> "20000"
                         const txAmountStr = String(tx.amount_in).replace(/[^0-9]/g, '');
                         const txAmount = parseFloat(txAmountStr);
-
-                        if (isMatch) {
-                            console.log(`Debug Payment: Code Match found. Content: ${content}. Amount SePay: ${tx.amount_in} -> Parsed: ${txAmount}. Order Total: ${order ? order.total : 0}`);
-                        }
 
                         // Compare
                         return isMatch && txAmount >= (order ? order.total : 0);
