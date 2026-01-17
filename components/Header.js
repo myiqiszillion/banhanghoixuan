@@ -6,7 +6,7 @@ export default function Header({ onOpenHistory, onOpenMiniGame }) {
                 <div className="header-left">
                     <div className="school-badge">
                         <span className="badge-icon">🏫</span>
-                        <span className="mobile-hide">Minh Khai</span>
+                        <span className="mobile-hide">THPT Nguyễn Thị Minh Khai - Bình Dương</span>
                         <span className="desktop-hide">MK</span>
                     </div>
                 </div>
