@@ -56,8 +56,8 @@ export async function GET(request) {
                         const txAmountStr = String(tx.amount_in).replace(/[^0-9]/g, '');
                         const txAmount = parseFloat(txAmountStr);
 
-                        // Compare
-                        return isMatch && txAmount >= order.total;
+                        // Compare strict equality as requested
+                        return isMatch && txAmount === order.total;
                     });
 
                     if (matching) {
