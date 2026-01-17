@@ -47,14 +47,16 @@ export async function GET(request) {
                         // Check strictly for orderCode
                         const isMatch = content.toUpperCase().includes(orderCode.toUpperCase());
 
-                        // Sanitize amount (remove commas if present)
-                        const txAmountStr = String(tx.amount_in).replace(/,/g, '');
+                        // Sanitize amount: remove ALL non-numeric characters (dots, commas)
+                        // Example: "20.000" -> "20000", "20,000" -> "20000"
+                        const txAmountStr = String(tx.amount_in).replace(/[^0-9]/g, '');
                         const txAmount = parseFloat(txAmountStr);
 
                         if (isMatch) {
-                            console.log(`Found match: ${content}, Amount Raw: ${tx.amount_in}, Parsed: ${txAmount}`);
+                            console.log(`Debug Payment: Code Match found. Content: ${content}. Amount SePay: ${tx.amount_in} -> Parsed: ${txAmount}. Order Total: ${order ? order.total : 0}`);
                         }
 
+                        // Compare
                         return isMatch && txAmount >= (order ? order.total : 0);
                     });
 

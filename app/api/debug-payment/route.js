@@ -51,7 +51,21 @@ export async function GET(request) {
 
                 const match = data.transactions.find(tx => {
                     const content = tx.transaction_content || tx.description || '';
-                    return orderCode && content.toUpperCase().includes(orderCode.toUpperCase());
+                    const isCodeMatch = orderCode && content.toUpperCase().includes(orderCode.toUpperCase());
+
+                    if (isCodeMatch) {
+                        const txAmountStr = String(tx.amount_in).replace(/[^0-9]/g, '');
+                        const txAmount = parseFloat(txAmountStr);
+                        // Log match candidate
+                        debugResult.candidates = debugResult.candidates || [];
+                        debugResult.candidates.push({
+                            content,
+                            amountRaw: tx.amount_in,
+                            amountParsed: txAmount
+                        });
+                    }
+
+                    return isCodeMatch;
                 });
 
                 if (match) {
