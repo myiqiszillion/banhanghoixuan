@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import { CONFIG } from '@/lib/config';
 import { removeVietnameseAccents, formatCurrency } from '@/lib/utils';
 import clsx from 'clsx';
@@ -40,6 +39,18 @@ export default function PaymentModal({ isOpen, onClose, orderData, onSuccess }) 
             return () => clearInterval(interval);
         }
     }, [isOpen, orderData, onSuccess]);
+
+    // Prevent body scroll when modal is open
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
 
     if (!isOpen || !orderData) return null;
 
