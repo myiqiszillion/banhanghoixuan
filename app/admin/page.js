@@ -24,7 +24,7 @@ export default function AdminPage() {
             const interval = setInterval(() => {
                 fetchOrders();
                 if (activeTab === 'transactions') fetchTransactions();
-            }, 10000); // Auto refresh
+            }, 2000); // Auto refresh every 2 seconds (Near Real-time)
             return () => clearInterval(interval);
         }
     }, [isAuthenticated, activeTab]);
