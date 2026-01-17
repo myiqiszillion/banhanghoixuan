@@ -14,8 +14,8 @@ export default function PaymentModal({ isOpen, onClose, orderData, onSuccess }) 
         if (isOpen && orderData) {
             setIsLoading(true);
 
-            // Format: Just the Order Code (simplest for matching)
-            const rawContent = orderData.orderCode;
+            // Format: 1011 [CODE] [NAME] (Restored per user request)
+            const rawContent = `1011 ${orderData.orderCode} ${removeVietnameseAccents(orderData.name)}`;
             const transferContent = rawContent.trim();
 
             // Generate URL
@@ -43,7 +43,7 @@ export default function PaymentModal({ isOpen, onClose, orderData, onSuccess }) 
 
     if (!isOpen || !orderData) return null;
 
-    const transferContent = orderData.orderCode;
+    const transferContent = `1011 ${orderData.orderCode} ${removeVietnameseAccents(orderData.name)}`;
 
     return (
         <div className={clsx("modal-overlay", { active: isOpen })}>
@@ -69,10 +69,15 @@ export default function PaymentModal({ isOpen, onClose, orderData, onSuccess }) 
                         fontWeight: '800',
                         fontSize: '1.1rem',
                         marginBottom: '0.5rem',
-                        textTransform: 'uppercase',
-                        animation: 'pulse 1.5s infinite'
-                    }}>
-                        ⚠️ QUAN TRỌNG: CHỈ GHI MÃ ĐƠN
+                    < p style={{
+                            color: '#ff4444',
+                            fontWeight: '800',
+                            fontSize: '1.1rem',
+                            marginBottom: '0.5rem',
+                            textTransform: 'uppercase',
+                            animation: 'pulse 1.5s infinite'
+                        }}>
+                        ⚠️ CẢNH BÁO QUAN TRỌNG
                     </p>
                     <p style={{ color: '#fff', fontSize: '0.95rem' }}>
                         NỘI DUNG CHUYỂN KHOẢN PHẢI CHÍNH XÁC:<br />
