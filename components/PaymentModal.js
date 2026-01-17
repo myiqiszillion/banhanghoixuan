@@ -15,7 +15,7 @@ export default function PaymentModal({ isOpen, onClose, orderData, onSuccess }) 
             setIsLoading(true);
 
             // Format: 1011 [CODE] [NAME] (Restored per user request)
-            const rawContent = `1011 ${orderData.orderCode} ${removeVietnameseAccents(orderData.name)}`;
+            const rawContent = `1011 ${orderData.orderCode} ${removeVietnameseAccents(orderData.name || '')}`;
             const transferContent = rawContent.trim();
 
             // Generate URL
@@ -43,7 +43,7 @@ export default function PaymentModal({ isOpen, onClose, orderData, onSuccess }) 
 
     if (!isOpen || !orderData) return null;
 
-    const transferContent = `1011 ${orderData.orderCode} ${removeVietnameseAccents(orderData.name)}`;
+    const transferContent = `1011 ${orderData.orderCode} ${removeVietnameseAccents(orderData.name || '')}`;
 
     return (
         <div className={clsx("modal-overlay", { active: isOpen })}>
