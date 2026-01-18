@@ -43,7 +43,7 @@ export default function HeroSection() {
                     <div className="price-box">
                         <span className="price-label">CHỈ CÒN</span>
                         <span className="price-value">20K</span>
-                        <span className="price-unit">/phần</span>
+                        <span className="price-unit">/vé</span>
                     </div>
                 </div>
             </div>
