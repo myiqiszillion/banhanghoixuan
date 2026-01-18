@@ -1,21 +1,26 @@
 /* ===== CSS Variables & Root Styles ===== */
+/* Gen Z Hội Xuân 2026 Theme - Neon, Vibrant, Festive */
 :root {
-  --primary-gradient: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ffcc00 100%);
-  --fire-gradient: linear-gradient(135deg, #ff4500 0%, #ff6b35 50%, #ff8c00 100%);
-  --secondary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --dark-bg: #0a0a0f;
-  --card-bg: rgba(255, 255, 255, 0.05);
-  --card-border: rgba(255, 255, 255, 0.1);
+  --primary-gradient: linear-gradient(135deg, #ff6b9d 0%, #ffc371 50%, #ff5e62 100%);
+  --fire-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --secondary-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --neon-pink: #ff6b9d;
+  --neon-blue: #4facfe;
+  --neon-purple: #a855f7;
+  --neon-green: #22d3ee;
+  --dark-bg: #0f0f1a;
+  --card-bg: rgba(255, 255, 255, 0.08);
+  --card-border: rgba(255, 255, 255, 0.15);
   --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --text-muted: rgba(255, 255, 255, 0.5);
+  --text-secondary: rgba(255, 255, 255, 0.8);
+  --text-muted: rgba(255, 255, 255, 0.6);
   --accent-orange: #ff6b35;
-  --accent-yellow: #ffcc00;
-  --accent-red: #ff4444;
-  --success-color: #00d26a;
-  --shadow-glow: 0 0 40px rgba(255, 107, 53, 0.3);
-  --border-radius: 16px;
-  --border-radius-sm: 12px;
+  --accent-yellow: #ffc371;
+  --accent-red: #f5576c;
+  --success-color: #22d3ee;
+  --shadow-glow: 0 0 40px rgba(255, 107, 157, 0.4);
+  --border-radius: 20px;
+  --border-radius-sm: 14px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

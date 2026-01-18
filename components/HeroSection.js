@@ -29,7 +29,8 @@ export default function HeroSection() {
                 <div className="hero-text">
                     <div className="product-label">
                         <span className="hot-tag">🔥 HOT</span>
-                        <span className="new-tag">✨ MỚI</span>
+                        <span className="new-tag">✨ VIRAL</span>
+                        <span className="spring-tag">🌸 HỘI XUÂN</span>
                     </div>
                     <h1 className="product-title">
                         <span className="title-snow">TUYẾT SƠN</span>
@@ -37,11 +38,11 @@ export default function HeroSection() {
                     </h1>
                     <p className="product-description">
                         Xiên bánh gạo Hàn Quốc cay ngọt đặc biệt -
-                        Món ăn hot nhất Hội Xuân 2026! 🌶️
+                        Món ăn viral nhất Hội Xuân 2026! 🌶️🧧
                     </p>
                     <div className="price-box">
-                        <span className="price-label">GIÁ CHỈ</span>
-                        <span className="price-value">20.000đ</span>
+                        <span className="price-label">CHỈ CÒN</span>
+                        <span className="price-value">20K</span>
                         <span className="price-unit">/phần</span>
                     </div>
                 </div>
