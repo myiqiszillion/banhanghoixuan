@@ -245,8 +245,18 @@ export default function MiniGameModal({ isOpen, onClose }) {
                         }}>
                             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔐</div>
                             <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>XÁC THỰC ĐỂ CHƠI</h3>
-                            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
                                 Nhập số điện thoại đã dùng để đặt hàng
+                            </p>
+                            <p style={{
+                                color: '#ffcc00',
+                                fontSize: '0.8rem',
+                                marginBottom: '1.5rem',
+                                padding: '0.5rem',
+                                background: 'rgba(255,204,0,0.1)',
+                                borderRadius: '8px'
+                            }}>
+                                💡 Lưu ý: Dùng đúng SĐT khi mua hàng để nhận vé!
                             </p>
 
                             <input
