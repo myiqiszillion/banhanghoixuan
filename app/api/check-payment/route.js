@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { CONFIG } from '@/lib/config';
 import { db } from '@/lib/db';
+import { googleSheets } from '@/lib/google-sheets';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,6 +66,20 @@ export async function GET(request) {
             // Update order status to paid
             order.status = 'paid';
             await db.addOrder(order);
+
+            // AUTO-SYNC TO GOOGLE SHEETS
+            try {
+                // Determine Spreadsheet ID (from config or env)
+                const sheetId = CONFIG.googleSheets.spreadsheetId;
+                if (sheetId) {
+                    await googleSheets.appendOrdersToSheet(sheetId, [order]);
+                    console.log(`[Auto-Sync] Order ${orderCode} synced to Google Sheets.`);
+                }
+            } catch (syncError) {
+                console.error('[Auto-Sync Error]', syncError);
+                // Don't fail the payment check just because sync failed
+            }
+
             return NextResponse.json({ paid: true });
         }
 
