@@ -13,6 +13,7 @@ export default function AdminPage() {
     const [transactions, setTransactions] = useState([]);
     const [activeTab, setActiveTab] = useState('orders'); // 'orders' | 'transactions'
     const [filter, setFilter] = useState('all');
+    const [searchQuery, setSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
     // Initial check (session based? simple state for now)
@@ -96,6 +97,14 @@ export default function AdminPage() {
 
     // Filter Logic
     const filteredOrders = orders.filter(o => {
+        // Search Filter
+        if (searchQuery) {
+            const lowerSearch = searchQuery.toLowerCase();
+            const matchName = o.name?.toLowerCase().includes(lowerSearch);
+            const matchPhone = o.phone?.includes(lowerSearch);
+            if (!matchName && !matchPhone) return false;
+        }
+
         if (filter === 'all') return true;
         if (filter === 'pending') return o.status === 'pending';
         if (filter === 'paid') return o.status === 'paid';
@@ -252,24 +261,43 @@ export default function AdminPage() {
                         </div>
 
                         {/* Filters & Actions */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
-                            <div className="admin-filters" style={{ marginBottom: 0 }}>
-                                <button className={`filter-btn ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>Tất cả</button>
-                                <button className={`filter-btn ${filter === 'pending' ? 'active' : ''}`} onClick={() => setFilter('pending')}>Chờ thanh toán</button>
-                                <button className={`filter-btn ${filter === 'paid' ? 'active' : ''}`} onClick={() => setFilter('paid')}>Đã thanh toán</button>
-                                <button className={`filter-btn ${filter === 'delivered' ? 'active' : ''}`} onClick={() => setFilter('delivered')}>✅ Đã giao</button>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+                            {/* Search Bar */}
+                            <input
+                                type="text"
+                                placeholder="🔍 Tìm kiếm theo tên hoặc số điện thoại..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                style={{
+                                    padding: '0.8rem',
+                                    borderRadius: '8px',
+                                    border: '1px solid rgba(255,255,255,0.2)',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    color: '#fff',
+                                    fontSize: '1rem',
+                                    width: '100%'
+                                }}
+                            />
 
-                                <button
-                                    className="filter-btn"
-                                    style={{ background: 'rgba(255, 68, 68, 0.2)', color: '#ff4444', border: '1px solid currentColor' }}
-                                    onClick={handleClearAll}
-                                >
-                                    🗑️ XÓA TẤT CẢ
+                            <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+                                <div className="admin-filters" style={{ marginBottom: 0 }}>
+                                    <button className={`filter-btn ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>Tất cả</button>
+                                    <button className={`filter-btn ${filter === 'pending' ? 'active' : ''}`} onClick={() => setFilter('pending')}>Chờ thanh toán</button>
+                                    <button className={`filter-btn ${filter === 'paid' ? 'active' : ''}`} onClick={() => setFilter('paid')}>Đã thanh toán</button>
+                                    <button className={`filter-btn ${filter === 'delivered' ? 'active' : ''}`} onClick={() => setFilter('delivered')}>✅ Đã giao</button>
+
+                                    <button
+                                        className="filter-btn"
+                                        style={{ background: 'rgba(255, 68, 68, 0.2)', color: '#ff4444', border: '1px solid currentColor' }}
+                                        onClick={handleClearAll}
+                                    >
+                                        🗑️ XÓA TẤT CẢ
+                                    </button>
+                                </div>
+                                <button className="admin-btn export-btn" onClick={handleExport} style={{ maxWidth: '200px' }}>
+                                    📥 Xuất Excel
                                 </button>
                             </div>
-                            <button className="admin-btn export-btn" onClick={handleExport} style={{ maxWidth: '200px' }}>
-                                📥 Xuất Excel
-                            </button>
                         </div>
 
                         {/* List */}
