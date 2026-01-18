@@ -70,24 +70,34 @@ export default function MiniGameModal({ isOpen, onClose }) {
         setIsFlipping(true);
         setShowResult(false);
 
-        // Smart duplicate rate based on collection progress
-        // The more cards you have, the harder to get new ones
-        // Prize is 5,555,555 VND - make it EXTREMELY challenging!
+        // SMART PSYCHOLOGY-BASED PROBABILITY SYSTEM
+        // Strategy: Easy start to HOOK players, then progressively impossible
+        // Players feel "so close" but can never finish
         let duplicateChance;
         const cardCount = collectedCards.length;
 
         if (cardCount === 0) {
-            duplicateChance = 0; // First card always new
-        } else if (cardCount <= 2) {
-            duplicateChance = 0.60; // 60% duplicate (hook them in)
-        } else if (cardCount <= 5) {
-            duplicateChance = 0.85; // 85% duplicate (getting very hard)
-        } else if (cardCount <= 8) {
-            duplicateChance = 0.95; // 95% duplicate (extremely hard)
-        } else if (cardCount <= 9) {
-            duplicateChance = 0.98; // 98% duplicate (nearly impossible)
+            duplicateChance = 0; // First card ALWAYS new - instant gratification!
+        } else if (cardCount === 1) {
+            duplicateChance = 0.20; // 20% dup - fast progress feels good
+        } else if (cardCount === 2) {
+            duplicateChance = 0.30; // 30% dup - still easy, building hope
+        } else if (cardCount === 3) {
+            duplicateChance = 0.45; // 45% dup - slight slowdown
+        } else if (cardCount === 4) {
+            duplicateChance = 0.55; // 55% dup - now it's a challenge
+        } else if (cardCount === 5) {
+            duplicateChance = 0.70; // 70% dup - "I'm halfway there!"
+        } else if (cardCount === 6) {
+            duplicateChance = 0.80; // 80% dup - getting tough
+        } else if (cardCount === 7) {
+            duplicateChance = 0.88; // 88% dup - very hard
+        } else if (cardCount === 8) {
+            duplicateChance = 0.93; // 93% dup - extremely hard
+        } else if (cardCount === 9) {
+            duplicateChance = 0.97; // 97% dup - nearly impossible (needs ~33 flips avg)
         } else {
-            duplicateChance = 0.995; // 99.5% duplicate (last card - legendary!)
+            duplicateChance = 0.993; // 99.3% dup - LAST CARD IS LEGENDARY (~143 flips avg)
         }
 
         let selectedCard;
