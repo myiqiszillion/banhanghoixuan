@@ -53,9 +53,9 @@ export async function GET(request) {
                         // Check if content contains the order code
                         const isMatch = content.includes(codeUpper);
 
-                        // Get transaction amount
-                        const txAmountStr = String(tx.amount_in || tx.amount || 0).replace(/[^0-9]/g, '');
-                        const txAmount = parseInt(txAmountStr) || 0;
+                        // Get transaction amount - handle "680000.00" format correctly
+                        const txAmountRaw = tx.amount_in || tx.amount || 0;
+                        const txAmount = Math.round(parseFloat(txAmountRaw) || 0);
                         const orderTotal = parseInt(order.total) || 0;
 
                         // Debug log
