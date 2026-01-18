@@ -47,10 +47,18 @@ export async function POST(request) {
         // Assuming db.getPaidOrders exists. If not I will add it.
         const paidOrders = await db.getPaidOrders();
 
+        // Debug: Get total orders to compare (if possible, or just report paid count)
+        const totalOrders = global.mockStore ? global.mockStore.orders.length : 'N/A';
+
+        console.log(`Syncing ${paidOrders.length} paid orders.`);
+
         const result = await googleSheets.appendOrdersToSheet(spreadsheetId, paidOrders);
 
         if (result.success) {
-            return NextResponse.json({ success: true, message: 'Synced to Google Sheets' });
+            return NextResponse.json({
+                success: true,
+                message: `Đã đồng bộ ${paidOrders.length} đơn (Tổng: ${totalOrders}). ${result.message || ''}`
+            });
         } else {
             return NextResponse.json({ error: result.error }, { status: 500 });
         }
