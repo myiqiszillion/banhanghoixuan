@@ -11,7 +11,8 @@ export default function AdminPage() {
     const [password, setPassword] = useState('');
     const [orders, setOrders] = useState([]);
     const [transactions, setTransactions] = useState([]);
-    const [activeTab, setActiveTab] = useState('orders'); // 'orders' | 'transactions'
+    const [gameStats, setGameStats] = useState([]);
+    const [activeTab, setActiveTab] = useState('orders'); // 'orders' | 'transactions' | 'minigame'
     const [filter, setFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -22,9 +23,13 @@ export default function AdminPage() {
         if (isAuthenticated) {
             fetchOrders();
             fetchTransactions();
+            fetchOrders();
+            fetchTransactions();
+            fetchGameStats();
             const interval = setInterval(() => {
                 fetchOrders();
                 if (activeTab === 'transactions') fetchTransactions();
+                if (activeTab === 'minigame') fetchGameStats();
             }, 2000); // Auto refresh every 2 seconds (Near Real-time)
             return () => clearInterval(interval);
         }
@@ -63,6 +68,18 @@ export default function AdminPage() {
             }
         } catch (e) {
             console.error('Failed to fetch transactions', e);
+        }
+    };
+
+    const fetchGameStats = async () => {
+        try {
+            const res = await fetch(`/api/admin/minigame-stats?password=${CONFIG.admin.password}`);
+            const data = await res.json();
+            if (data.stats) {
+                setGameStats(data.stats);
+            }
+        } catch (e) {
+            console.error('Failed to fetch game stats', e);
         }
     };
 
@@ -246,6 +263,13 @@ export default function AdminPage() {
                     >
                         💸 Lịch Sử Giao Dịch
                     </button>
+                    <button
+                        onClick={() => setActiveTab('minigame')}
+                        className={`filter-btn ${activeTab === 'minigame' ? 'active' : ''}`}
+                        style={{ fontSize: '1.2rem', padding: '0.8rem 1.5rem', flex: 1 }}
+                    >
+                        🎮 Mini Game
+                    </button>
                 </div>
 
                 {activeTab === 'orders' ? (
@@ -378,7 +402,7 @@ export default function AdminPage() {
                             ))}
                         </div>
                     </>
-                ) : (
+                ) : activeTab === 'transactions' ? (
                     // TRANSACTIONS TAB
                     <div className="orders-list">
                         <div style={{ marginBottom: '1rem', color: '#aaa', fontStyle: 'italic' }}>
@@ -413,6 +437,47 @@ export default function AdminPage() {
                                 </table>
                             </div>
                         )}
+                    </div>
+                ) : (
+                    // MINIGAME TAB
+                    <div className="orders-list">
+                        <div style={{ marginBottom: '1rem', color: '#aaa', fontStyle: 'italic' }}>
+                            * Danh sách người chơi và trạng thái vé
+                        </div>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', color: 'white' }}>
+                                <thead>
+                                    <tr style={{ borderBottom: '2px solid rgba(255,255,255,0.1)', textAlign: 'left' }}>
+                                        <th style={{ padding: '1rem' }}>SĐT</th>
+                                        <th style={{ padding: '1rem' }}>Tổng vé</th>
+                                        <th style={{ padding: '1rem' }}>Đã dùng</th>
+                                        <th style={{ padding: '1rem' }}>Còn lại</th>
+                                        <th style={{ padding: '1rem' }}>Thẻ đang có</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {gameStats.map(stat => (
+                                        <tr key={stat.phone} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.02)' }}>
+                                            <td style={{ padding: '1rem', fontWeight: 'bold' }}>{stat.phone}</td>
+                                            <td style={{ padding: '1rem' }}>{stat.totalTickets}</td>
+                                            <td style={{ padding: '1rem' }}>{stat.usedTickets}</td>
+                                            <td style={{ padding: '1rem', color: stat.remainingTickets > 0 ? '#00d26a' : '#aaa', fontWeight: stat.remainingTickets > 0 ? 'bold' : 'normal' }}>
+                                                {stat.remainingTickets}
+                                            </td>
+                                            <td style={{ padding: '1rem' }}>
+                                                {stat.collectedCards.length}/11
+                                                {stat.collectedCards.length === 11 && <span style={{ marginLeft: '10px' }}>👑 ĐÃ XONG</span>}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {gameStats.length === 0 && (
+                                        <tr>
+                                            <td colSpan="5" style={{ padding: '2rem', textAlign: 'center', color: '#aaa' }}>Chưa có dữ liệu chơi game</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
             </div>
