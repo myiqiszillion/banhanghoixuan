@@ -171,13 +171,36 @@ export default function MiniGameModal({ isOpen, onClose }) {
                         background: 'linear-gradient(135deg, #ff4444 0%, #ffcc00 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
-                        marginBottom: '0.25rem'
+                        marginBottom: '0.5rem'
                     }}>
                         🎴 LẬT THẺ SƯU TẬP
                     </h2>
-                    <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>
-                        Sưu tập đủ 11 thẻ để đổi quà đặc biệt!
-                    </p>
+
+                    {/* Prize Display */}
+                    <div style={{
+                        background: 'linear-gradient(135deg, rgba(255,215,0,0.15) 0%, rgba(255,107,53,0.15) 100%)',
+                        border: '2px solid #ffd700',
+                        borderRadius: '12px',
+                        padding: '0.75rem 1rem',
+                        marginTop: '0.5rem'
+                    }}>
+                        <div style={{ fontSize: '0.75rem', color: '#ffd700', fontWeight: '600', letterSpacing: '1px' }}>
+                            🏆 GIẢI THƯỞNG
+                        </div>
+                        <div style={{
+                            fontSize: '1.8rem',
+                            fontWeight: '900',
+                            background: 'linear-gradient(135deg, #ffd700 0%, #ff8c00 100%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            lineHeight: 1.2
+                        }}>
+                            5.555.555đ
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>
+                            Sưu tập đủ 11 thẻ để nhận giải!
+                        </div>
+                    </div>
                 </div>
 
                 {/* Celebration Overlay */}
@@ -509,6 +532,6 @@ export default function MiniGameModal({ isOpen, onClose }) {
                     50% { transform: translateY(-10px); }
                 }
             `}</style>
-        </div>
+        </div >
     );
 }
