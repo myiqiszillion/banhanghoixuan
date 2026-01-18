@@ -181,6 +181,30 @@ export default function AdminPage() {
         }
     };
 
+    // Delete Game State
+    const handleDeleteGameState = async (phone) => {
+        if (!confirm(`Bạn có chắc muốn XÓA dữ liệu game của SĐT ${phone}?`)) return;
+
+        try {
+            const res = await fetch('/api/admin/minigame-delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone, password: CONFIG.admin.password })
+            });
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                alert('Đã xóa dữ liệu game thành công!');
+                setGameStats(gameStats.filter(s => s.phone !== phone));
+            } else {
+                alert('Lỗi xóa dữ liệu: ' + (data.error || 'Unknown'));
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Lỗi hệ thống');
+        }
+    };
+
     // Clear All
     const handleClearAll = async () => {
         if (!confirm('⚠️ CẢNH BÁO: Bạn có chắc chắn muốn xóa TẤT CẢ đơn hàng?\nHành động này không thể khôi phục!')) return;
@@ -453,6 +477,7 @@ export default function AdminPage() {
                                         <th style={{ padding: '1rem' }}>Đã dùng</th>
                                         <th style={{ padding: '1rem' }}>Còn lại</th>
                                         <th style={{ padding: '1rem' }}>Thẻ đang có</th>
+                                        <th style={{ padding: '1rem' }}>Hành động</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -467,6 +492,15 @@ export default function AdminPage() {
                                             <td style={{ padding: '1rem' }}>
                                                 {stat.collectedCards.length}/11
                                                 {stat.collectedCards.length === 11 && <span style={{ marginLeft: '10px' }}>👑 ĐÃ XONG</span>}
+                                            </td>
+                                            <td style={{ padding: '1rem' }}>
+                                                <button
+                                                    onClick={() => handleDeleteGameState(stat.phone)}
+                                                    style={{ background: 'rgba(255, 68, 68, 0.2)', border: '1px solid #ff4444', color: '#ff4444', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer' }}
+                                                    title="Xóa dữ liệu game"
+                                                >
+                                                    ❌ Xóa
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
