@@ -70,9 +70,43 @@ export default function MiniGameModal({ isOpen, onClose }) {
         setIsFlipping(true);
         setShowResult(false);
 
-        // Random card selection
-        const randomIndex = Math.floor(Math.random() * CARD_COLLECTION.length);
-        const selectedCard = CARD_COLLECTION[randomIndex];
+        // Smart duplicate rate based on collection progress
+        // The more cards you have, the harder to get new ones
+        // Prize is 5,555,555 VND - make it EXTREMELY challenging!
+        let duplicateChance;
+        const cardCount = collectedCards.length;
+
+        if (cardCount === 0) {
+            duplicateChance = 0; // First card always new
+        } else if (cardCount <= 2) {
+            duplicateChance = 0.60; // 60% duplicate (hook them in)
+        } else if (cardCount <= 5) {
+            duplicateChance = 0.85; // 85% duplicate (getting very hard)
+        } else if (cardCount <= 8) {
+            duplicateChance = 0.95; // 95% duplicate (extremely hard)
+        } else if (cardCount <= 9) {
+            duplicateChance = 0.98; // 98% duplicate (nearly impossible)
+        } else {
+            duplicateChance = 0.995; // 99.5% duplicate (last card - legendary!)
+        }
+
+        let selectedCard;
+
+        // Check if we should give a duplicate
+        if (collectedCards.length > 0 && collectedCards.length < 11 && Math.random() < duplicateChance) {
+            // Pick a random card from already collected cards (guaranteed duplicate)
+            const randomCollectedId = collectedCards[Math.floor(Math.random() * collectedCards.length)];
+            selectedCard = CARD_COLLECTION.find(c => c.id === randomCollectedId);
+        } else {
+            // Give a card NOT in collection (if possible) or random
+            const uncollectedCards = CARD_COLLECTION.filter(c => !collectedCards.includes(c.id));
+            if (uncollectedCards.length > 0) {
+                selectedCard = uncollectedCards[Math.floor(Math.random() * uncollectedCards.length)];
+            } else {
+                // All collected - random (shouldn't happen normally)
+                selectedCard = CARD_COLLECTION[Math.floor(Math.random() * CARD_COLLECTION.length)];
+            }
+        }
 
         // Animation timing
         setTimeout(() => {
