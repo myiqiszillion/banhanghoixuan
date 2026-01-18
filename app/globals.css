@@ -458,6 +458,112 @@ body {
   padding: 2rem;
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Prize Banner */
+.prize-banner {
+  position: relative;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 3px solid transparent;
+  border-radius: 20px;
+  padding: 2rem;
+  text-align: center;
+  overflow: hidden;
+  background-clip: padding-box;
+}
+
+.prize-banner::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  background: linear-gradient(135deg, #ffd700 0%, #ff6b35 25%, #ffd700 50%, #ff6b35 75%, #ffd700 100%);
+  background-size: 300% 300%;
+  border-radius: 22px;
+  z-index: -1;
+  animation: prizeBorderFlow 3s ease infinite;
+}
+
+@keyframes prizeBorderFlow {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.prize-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255, 215, 0, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.prize-content {
+  position: relative;
+  z-index: 1;
+}
+
+.prize-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffd700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 0.5rem;
+}
+
+.prize-amount {
+  font-size: clamp(2.5rem, 8vw, 4rem);
+  font-weight: 900;
+  background: linear-gradient(135deg, #ffd700 0%, #ffec8b 25%, #ffd700 50%, #ff8c00 75%, #ffd700 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shineGold 2s linear infinite;
+  text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+  line-height: 1.1;
+}
+
+@keyframes shineGold {
+  to {
+    background-position: 200% center;
+  }
+}
+
+.prize-desc {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 0.5rem;
+}
+
+/* Promo Items */
+.promo-item {
+  margin-bottom: 1rem;
+}
+
+.promo-item:last-child {
+  margin-bottom: 0;
+}
+
+.promo-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  margin: 1rem 0;
+}
+
+.promo-note.success {
+  color: var(--success-color);
+  font-weight: bold;
 }
 
 .promo-card {
