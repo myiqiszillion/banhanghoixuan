@@ -47,17 +47,22 @@ export async function GET(request) {
                 const data = await res.json();
                 if (data.status === 200 && data.transactions) {
                     const matching = data.transactions.find(tx => {
-                        const content = tx.transaction_content || tx.description || '';
-                        // Check strictly for orderCode
-                        const isMatch = content.toUpperCase().includes(orderCode.toUpperCase());
+                        const content = (tx.transaction_content || tx.description || '').toUpperCase();
+                        const codeUpper = orderCode.toUpperCase();
 
-                        // Sanitize amount: remove ALL non-numeric characters (dots, commas)
-                        // Example: "20.000" -> "20000", "20,000" -> "20000"
-                        const txAmountStr = String(tx.amount_in).replace(/[^0-9]/g, '');
-                        const txAmount = parseFloat(txAmountStr);
+                        // Check if content contains the order code
+                        const isMatch = content.includes(codeUpper);
 
-                        // Compare strict equality as requested
-                        return isMatch && txAmount === order.total;
+                        // Get transaction amount
+                        const txAmountStr = String(tx.amount_in || tx.amount || 0).replace(/[^0-9]/g, '');
+                        const txAmount = parseInt(txAmountStr) || 0;
+                        const orderTotal = parseInt(order.total) || 0;
+
+                        // Debug log
+                        console.log(`[Payment Check] Code: ${orderCode}, Content: "${content}", Match: ${isMatch}, TxAmount: ${txAmount}, OrderTotal: ${orderTotal}`);
+
+                        // Return match if content contains code AND amount matches
+                        return isMatch && txAmount === orderTotal;
                     });
 
                     if (matching) {
