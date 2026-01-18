@@ -23,19 +23,68 @@ export default function AdminPage() {
 
     useEffect(() => {
         if (isAuthenticated) {
-            fetchOrders();
-            fetchTransactions();
+            // Initial fetches
             fetchOrders();
             fetchTransactions();
             fetchGameStats();
-            const interval = setInterval(() => {
+
+            // 1. Data Refresh Loop (Fast - 2s)
+            const dataInterval = setInterval(() => {
                 fetchOrders();
                 if (activeTab === 'transactions') fetchTransactions();
                 if (activeTab === 'minigame') fetchGameStats();
-            }, 2000); // Auto refresh every 2 seconds (Near Real-time)
-            return () => clearInterval(interval);
+            }, 2000);
+
+            // 2. Background Sync Loop (Slower - 30s) - "24/7 Sync"
+            const syncInterval = setInterval(() => {
+                backgroundSync();
+            }, 30000);
+
+            return () => {
+                clearInterval(dataInterval);
+                clearInterval(syncInterval);
+            };
         }
     }, [isAuthenticated, activeTab]);
+
+    // Silent background sync
+    const backgroundSync = async () => {
+        try {
+            // We need the LATEST orders. State 'orders' might be stale in closure?
+            // Actually, in setInterval, we should use functional update but here we need to READ.
+            // Best to re-fetch or use a ref. 
+            // SIMPLIFICATION: trigger API to use its own DB or pass what we have.
+            // Since we moved to Client-Side Payload for isolation fix, we must rely on 'orders' state.
+            // But 'orders' in this closure is stale (from initial render).
+            // Fix: Use a ref or just fetch fresh orders then sync?
+            // BETTER: Since we are in an effect dependent on [isAuthenticated], 'orders' is NOT in dependency.
+            // This interval will run with STALE orders.
+            // We must add 'orders' to dependency but that resets interval.
+            // SOLUTION: Separate logical function that doesn't depend on stale closure OR use ref.
+            // Let's use `fetch('/api/orders')` inside here to get fresh data to sync.
+
+            const resOrders = await fetch('/api/orders');
+            const dataOrders = await resOrders.json();
+
+            if (Array.isArray(dataOrders)) {
+                const paidOrders = dataOrders.filter(o => o.status === 'paid');
+                if (paidOrders.length > 0) {
+                    await fetch('/api/admin/sync-sheets', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            password: CONFIG.admin.password,
+                            spreadsheetId: SPREADSHEET_ID,
+                            orders: paidOrders
+                        })
+                    });
+                    console.log(`[Background Sync] Checked ${paidOrders.length} paid orders.`);
+                }
+            }
+        } catch (e) {
+            console.error("[Background Sync] Failed:", e);
+        }
+    };
 
     const handleLogin = (e) => {
         e.preventDefault();
