@@ -88,8 +88,8 @@ export default function OrderForm() {
         <section className="order-section">
             <div className="order-container">
                 <h2 className="section-title">
-                    <span className="title-icon">🎟️</span>
-                    ĐẶT VÉ NGAY
+                    <span className="title-icon">🛒</span>
+                    ĐẶT HÀNG NGAY
                 </h2>
 
                 <form className="order-form" onSubmit={handleSubmit}>
@@ -146,7 +146,7 @@ export default function OrderForm() {
 
                     <div className="form-group">
                         <label>
-                            <span className="label-icon">🎫</span> Số vé
+                            <span className="label-icon">🔢</span> Số lượng
                         </label>
                         <div className="quantity-selector">
                             <button type="button" className="qty-btn" onClick={() => setFormData(prev => ({ ...prev, quantity: Math.max(1, prev.quantity - 1) }))}>-</button>
