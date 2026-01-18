@@ -167,8 +167,8 @@ export default function PaymentModal({ isOpen, onClose, orderData, onSuccess }) 
                                     {transferContent}
                                 </strong>
                             </p>
-                            <p style={{ color: '#ff4444', fontWeight: 'bold', marginTop: '0.5rem', fontSize: '0.9rem' }}>
-                                SAI NỘI DUNG = MẤT TIỀN! ❌
+                            <p style={{ color: '#ffcc00', fontWeight: 'bold', marginTop: '0.5rem', fontSize: '0.9rem' }}>
+                                ✅ Vui lòng chuyển đúng nội dung và số tiền
                             </p>
                         </div>
 
