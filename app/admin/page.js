@@ -16,7 +16,7 @@ export default function AdminPage() {
     const [filter, setFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [isSyncing, setIsSyncing] = useState(false);
+
     const SPREADSHEET_ID = '1PIP7rtucLNpwTNxkLZVXPPno8_bKpzXaU7Vik5PZbdk';
 
     // Initial check (session based? simple state for now)
@@ -241,32 +241,7 @@ export default function AdminPage() {
 
 
     // Google Sheet Sync
-    const handleSyncSheets = async () => {
-        setIsSyncing(true);
-        try {
-            const res = await fetch('/api/admin/sync-sheets', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    password: CONFIG.admin.password,
-                    spreadsheetId: SPREADSHEET_ID,
-                    orders: orders.filter(o => o.status === 'paid') // Send filtered orders directly
-                })
-            });
-            const data = await res.json();
 
-            if (res.ok && data.success) {
-                alert('✅ Đã đồng bộ dữ liệu sang Google Sheet thành công!');
-            } else {
-                alert('❌ Lỗi đồng bộ: ' + (data.error || 'Unknown'));
-            }
-        } catch (e) {
-            console.error(e);
-            alert('❌ Lỗi hệ thống khi đồng bộ');
-        } finally {
-            setIsSyncing(false);
-        }
-    };
 
     if (!isAuthenticated) {
         return (
@@ -383,14 +358,7 @@ export default function AdminPage() {
                                 <button className="admin-btn export-btn" onClick={handleExport} style={{ maxWidth: '200px' }}>
                                     📥 Xuất Excel
                                 </button>
-                                <button
-                                    className="admin-btn"
-                                    onClick={handleSyncSheets}
-                                    disabled={isSyncing}
-                                    style={{ maxWidth: '200px', background: '#0f9d58', border: '1px solid #0f9d58' }}
-                                >
-                                    {isSyncing ? '⏳ Đang đồng bộ...' : '📊 Sync Google Sheet'}
-                                </button>
+
                             </div>
                         </div>
 
