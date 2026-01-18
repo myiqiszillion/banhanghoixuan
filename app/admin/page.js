@@ -67,23 +67,28 @@ export default function AdminPage() {
     };
 
     const handleExport = () => {
-        if (orders.length === 0) return alert('Không có dữ liệu!');
+        // Filter only PAID orders for Google Sheet export
+        const paidOrders = orders.filter(o => o.status === 'paid');
 
-        const headers = ['Mã đơn', 'Họ tên', 'SĐT', 'Lớp', 'Số lượng', 'Tổng tiền', 'Vé mini game', 'Tặng thêm', 'Trạng thái', 'Thời gian'];
-        const formatDateTime = (iso) => new Date(iso).toLocaleString('vi-VN');
+        if (paidOrders.length === 0) return alert('Chưa có đơn hàng nào đã thanh toán!');
 
-        const rows = orders.map(o => [
-            o.orderCode,
-            o.name,
-            o.phone,
-            o.class,
-            o.quantity,
-            o.total,
-            o.tickets || 0,
-            o.freePortions || 0,
-            o.status === 'paid' ? 'Đã thanh toán' : 'Chờ thanh toán',
-            formatDateTime(o.timestamp)
-        ]);
+        // Columns: Tên | SĐT | Lớp | Số phần + số phần tặng thêm nếu có
+        const headers = ['Tên', 'SĐT', 'Lớp', 'Số phần'];
+
+        const rows = paidOrders.map(o => {
+            // Format quantity: e.g. "5 (+1 tặng)"
+            let quantityStr = `${o.quantity}`;
+            if (o.freePortions > 0) {
+                quantityStr += ` (+${o.freePortions} tặng)`;
+            }
+
+            return [
+                o.name,
+                `'${o.phone}`, // Add quote to force string in Excel/Sheets (preserve leading zero)
+                o.class,
+                quantityStr
+            ];
+        });
 
         const BOM = '\uFEFF';
         const csvContent = BOM + [headers.join(','), ...rows.map(r => r.map(c => `"${c}"`).join(','))].join('\n');
@@ -91,7 +96,7 @@ export default function AdminPage() {
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `donhang_1011_${new Date().toISOString().slice(0, 10)}.csv`;
+        link.download = `Danh_Sach_Hoi_Xuan_${new Date().toISOString().slice(0, 10)}.csv`;
         link.click();
     };
 
