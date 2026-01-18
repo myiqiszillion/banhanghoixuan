@@ -249,7 +249,8 @@ export default function AdminPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     password: CONFIG.admin.password,
-                    spreadsheetId: SPREADSHEET_ID
+                    spreadsheetId: SPREADSHEET_ID,
+                    orders: orders.filter(o => o.status === 'paid') // Send filtered orders directly
                 })
             });
             const data = await res.json();
