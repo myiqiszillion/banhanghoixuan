@@ -45,12 +45,17 @@ export async function POST(request) {
         }
 
         // Assuming db.getPaidOrders exists. If not I will add it.
-        const paidOrders = await db.getPaidOrders();
+        // Use orders sent from client to ensure what Admin sees is what gets synced
+        // This avoids issue where server-side in-memory store might be empty in a different process.
+        let paidOrders = body.orders || [];
 
-        // Debug: Get total orders to compare (if possible, or just report paid count)
-        const totalOrders = global.mockStore ? global.mockStore.orders.length : 'N/A';
+        if (!Array.isArray(paidOrders) || paidOrders.length === 0) {
+            // Fallback (only if payload missing, though client should send it)
+            console.warn("No orders payload received. Checking DB (fallback)...");
+            paidOrders = await db.getPaidOrders();
+        }
 
-        console.log(`Syncing ${paidOrders.length} paid orders.`);
+        console.log(`Syncing ${paidOrders.length} orders (Source: ${body.orders ? 'Client' : 'DB'}).`);
 
         const result = await googleSheets.appendOrdersToSheet(spreadsheetId, paidOrders);
 
