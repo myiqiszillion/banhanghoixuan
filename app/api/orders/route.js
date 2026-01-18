@@ -5,9 +5,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
-        // Auto-cleanup expired orders before returning
         await db.cleanupExpiredOrders(15);
-
         const orders = await db.getAllOrders();
         return NextResponse.json(orders);
     } catch (error) {
@@ -19,7 +17,6 @@ export async function POST(request) {
     try {
         const body = await request.json();
 
-        // Validation (Basic)
         if (!body.name || !body.phone || !body.quantity) {
             return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
         }
@@ -41,7 +38,7 @@ export async function POST(request) {
         return NextResponse.json(savedOrder);
 
     } catch (error) {
-        console.error('API Error:', error);
+        console.error('Order API Error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
