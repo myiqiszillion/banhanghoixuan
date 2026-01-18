@@ -119,6 +119,16 @@ export default function OrderForm() {
                             value={formData.phone}
                             onChange={e => setFormData({ ...formData, phone: e.target.value })}
                         />
+                        <p style={{
+                            color: '#ffcc00',
+                            fontSize: '0.75rem',
+                            marginTop: '0.5rem',
+                            padding: '0.5rem',
+                            background: 'rgba(255,204,0,0.1)',
+                            borderRadius: '6px'
+                        }}>
+                            💡 Lưu ý: Dùng đúng SĐT này để chơi Mini Game nhận vé!
+                        </p>
                     </div>
 
                     <div className="form-group">
