@@ -100,7 +100,7 @@ body {
   background: var(--fire-gradient);
   color: #fff;
   box-shadow: 0 0 10px rgba(255, 69, 0, 0.4);
-  animation: pulse 2s infinite;
+  /* animation disabled for performance */
 }
 
 .history-btn {
@@ -180,7 +180,7 @@ body {
   color: #fff;
   font-weight: 700;
   box-shadow: 0 0 15px rgba(255, 69, 0, 0.3);
-  animation: badgePulse 2s infinite;
+  /* animation disabled for performance */
 }
 
 @keyframes badgePulse {
@@ -238,7 +238,7 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: shine 3s linear infinite;
+  /* animation disabled for performance */
   letter-spacing: -1px;
   filter: drop-shadow(0 0 15px rgba(255, 77, 77, 0.4));
 }
@@ -377,7 +377,8 @@ body {
 .hot-tag {
   background: var(--fire-gradient);
   color: #fff;
-  animation: glow 1.5s ease-in-out infinite alternate;
+  box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
+  /* animation disabled for performance */
 }
 
 .new-tag {
@@ -481,11 +482,10 @@ body {
   content: '';
   position: absolute;
   inset: -3px;
-  background: linear-gradient(135deg, #ffd700 0%, #ff6b35 25%, #ffd700 50%, #ff6b35 75%, #ffd700 100%);
-  background-size: 300% 300%;
+  background: linear-gradient(135deg, #ffd700 0%, #ff6b35 50%, #ffd700 100%);
   border-radius: 22px;
   z-index: -1;
-  animation: prizeBorderFlow 3s ease infinite;
+  /* animation disabled for performance */
 }
 
 @keyframes prizeBorderFlow {
@@ -524,13 +524,11 @@ body {
 .prize-amount {
   font-size: clamp(2.5rem, 8vw, 4rem);
   font-weight: 900;
-  background: linear-gradient(135deg, #ffd700 0%, #ffec8b 25%, #ffd700 50%, #ff8c00 75%, #ffd700 100%);
-  background-size: 200% auto;
+  background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: shineGold 2s linear infinite;
-  text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+  /* animation disabled for performance */
   line-height: 1.1;
 }
 
@@ -574,9 +572,9 @@ body {
   gap: 2rem;
   padding: 2rem;
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
-  border: 2px solid rgba(102, 126, 234, 0.3);
+  border: 2px solid rgba(102, 126, 234, 0.4);
   border-radius: var(--border-radius);
-  animation: borderGlow 3s ease-in-out infinite;
+  /* animation disabled for performance */
 }
 
 @keyframes borderGlow {
@@ -593,7 +591,7 @@ body {
 
 .promo-icon {
   font-size: 4rem;
-  animation: bounce 1s ease-in-out infinite;
+  /* animation disabled for performance */
 }
 
 @keyframes bounce {
