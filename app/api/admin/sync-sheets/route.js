@@ -62,7 +62,7 @@ export async function POST(request) {
         if (result.success) {
             return NextResponse.json({
                 success: true,
-                message: `Đã đồng bộ ${paidOrders.length} đơn (Tổng: ${totalOrders}). ${result.message || ''}`
+                message: `Đã đồng bộ ${paidOrders.length} đơn. ${result.message || ''}`
             });
         } else {
             return NextResponse.json({ error: result.error }, { status: 500 });
