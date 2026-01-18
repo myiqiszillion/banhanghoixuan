@@ -102,6 +102,10 @@ export default function AdminPage() {
         if (filter === 'delivered') return o.delivered === true; // New filter
         if (filter === 'undelivered') return !o.delivered; // New filter
         return true;
+    }).sort((a, b) => {
+        // Chưa giao (delivered=false) lên trước, đã giao (delivered=true) xuống sau
+        if (a.delivered === b.delivered) return 0;
+        return a.delivered ? 1 : -1;
     });
 
     // Toggle Delivery
