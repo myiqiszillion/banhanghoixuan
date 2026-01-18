@@ -72,8 +72,8 @@ export default function AdminPage() {
 
         if (paidOrders.length === 0) return alert('Chưa có đơn hàng nào đã thanh toán!');
 
-        // Columns: Tên | SĐT | Lớp | Số phần + số phần tặng thêm nếu có
-        const headers = ['Tên', 'SĐT', 'Lớp', 'Số phần'];
+        // Columns: Tên | SĐT | Lớp | Số phần + số phần tặng thêm nếu có | Trạng thái giao
+        const headers = ['Tên', 'SĐT', 'Lớp', 'Số phần', 'Trạng thái giao'];
 
         const rows = paidOrders.map(o => {
             // Format quantity: e.g. "5 (+1 tặng)"
@@ -86,7 +86,8 @@ export default function AdminPage() {
                 o.name,
                 `'${o.phone}`, // Add quote to force string in Excel/Sheets (preserve leading zero)
                 o.class,
-                quantityStr
+                quantityStr,
+                o.delivered ? 'Đã giao' : 'Chưa giao'
             ];
         });
 
