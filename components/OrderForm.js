@@ -88,8 +88,8 @@ export default function OrderForm() {
         <section className="order-section">
             <div className="order-container">
                 <h2 className="section-title">
-                    <span className="title-icon">🛒</span>
-                    ĐẶT HÀNG NGAY
+                    <span className="title-icon">🎟️</span>
+                    ĐẶT VÉ NGAY
                 </h2>
 
                 <form className="order-form" onSubmit={handleSubmit}>
@@ -199,7 +199,7 @@ export default function OrderForm() {
                     <button type="submit" className="submit-btn" disabled={isSubmitting}>
                         {isSubmitting ? 'ĐANG XỬ LÝ...' : <>
                             <span className="btn-icon">💳</span>
-                            <span className="btn-text">THANH TOÁN</span>
+                            <span className="btn-text">XÁC NHẬN ĐẶT VÉ</span>
                             <span className="btn-arrow">→</span>
                         </>}
                     </button>
