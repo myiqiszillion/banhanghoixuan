@@ -5,6 +5,9 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
+        // Auto-cleanup expired orders before returning
+        await db.cleanupExpiredOrders(15);
+
         const orders = await db.getAllOrders();
         return NextResponse.json(orders);
     } catch (error) {
