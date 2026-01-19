@@ -5,7 +5,7 @@ import confetti from 'canvas-confetti';
 
 const WHEEL_SIZE = 360;
 const CENTER = WHEEL_SIZE / 2;
-const RADIUS = WHEEL_SIZE * 0.42;
+const RADIUS = WHEEL_SIZE * 0.44;
 
 const playTickSound = () => {
     try {
@@ -69,7 +69,6 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
         const randomOffset = (Math.random() - 0.5) * (SEGMENT_ANGLE - 2);
 
         const sectorAngle = prizeIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
-        // Target: 270deg (Top)
         const targetRotation = current + spins + (270 - sectorAngle - (current % 360)) + randomOffset;
 
         const finalTarget = targetRotation < current + 360 * 5 ? targetRotation + 360 : targetRotation;
@@ -125,34 +124,13 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
     ];
 
     return (
-        <div style={{ position: 'relative', width: '320px', height: '320px', margin: '0 auto', userSelect: 'none' }}>
-            {/* 1. OUTER RING */}
-            <div className="absolute inset-0 rounded-full" style={{ background: 'conic-gradient(#CA8A04, #FACC15, #CA8A04, #FACC15, #CA8A04)', padding: '8px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
-                <div className="w-full h-full rounded-full bg-red-900 relative">
-                    {/* Lights */}
-                    {Array.from({ length: 24 }).map((_, i) => {
-                        const deg = i * (360 / 24);
-                        return (
-                            <div
-                                key={i}
-                                style={{
-                                    position: 'absolute',
-                                    top: '50%', left: '50%',
-                                    width: '8px', height: '8px',
-                                    borderRadius: '50%',
-                                    background: i % 2 === 0 ? '#FEF08A' : '#ffffff',
-                                    transform: `translate(-50%, -50%) rotate(${deg}deg) translate(148px) rotate(-${deg}deg)`,
-                                    boxShadow: '0 0 5px #FDE047',
-                                    animation: spinning ? `blink 0.5s infinite ${i % 2 === 0 ? 0 : 0.25}s` : 'none'
-                                }}
-                            />
-                        );
-                    })}
-                </div>
-            </div>
+        <div style={{ position: 'relative', width: '300px', height: '300px', margin: '0 auto', userSelect: 'none' }}>
+
+            {/* 1. SIMPLE OUTER RING (No lights, just border) */}
+            <div className="absolute inset-0 rounded-full border-[8px] border-yellow-500 bg-white shadow-xl"></div>
 
             {/* 2. WHEEL */}
-            <div className="absolute top-4 left-4 right-4 bottom-4 rounded-full overflow-hidden" style={{ border: '4px solid #EAB308', background: '#FFFBE6' }}>
+            <div className="absolute top-2 left-2 right-2 bottom-2 rounded-full overflow-hidden">
                 <svg
                     ref={wheelRef}
                     viewBox={`0 0 ${WHEEL_SIZE} ${WHEEL_SIZE}`}
@@ -167,35 +145,31 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
                         const path = `M ${CENTER} ${CENTER} L ${start[0]} ${start[1]} A ${RADIUS} ${RADIUS} 0 ${largeArc} 1 ${end[0]} ${end[1]} Z`;
 
                         const midA = startA + SEGMENT_ANGLE / 2;
-                        const dist = RADIUS * 0.78; // Push text further out
+                        const dist = RADIUS * 0.75;
                         const tx = CENTER + dist * Math.cos(midA * Math.PI / 180);
                         const ty = CENTER + dist * Math.sin(midA * Math.PI / 180);
 
-                        // Smart Rotation: Flip text on left side to be readable
+                        // Simple Rotation: Always +90 tangent
                         let rot = midA + 90;
                         if (midA > 90 && midA < 270) rot += 180;
 
                         return (
                             <g key={i}>
-                                <path d={path} fill={seg.color} stroke="#FDE047" strokeWidth="2" />
+                                <path d={path} fill={seg.color} stroke="#FFF" strokeWidth="2" />
                                 <g transform={`translate(${tx}, ${ty}) rotate(${rot})`}>
                                     <text
-                                        y={midA > 90 && midA < 270 ? 20 : -10} // Adjust emoji pos based on flip
+                                        y={midA > 90 && midA < 270 ? 20 : -10}
                                         textAnchor="middle"
-                                        fontSize="32"
-                                        filter="drop-shadow(0 2px 2px rgba(0,0,0,0.3))"
+                                        fontSize="28"
                                     >
                                         {seg.emoji}
                                     </text>
                                     <text
-                                        y={midA > 90 && midA < 270 ? -15 : 24} // Adjust text pos based on flip
+                                        y={midA > 90 && midA < 270 ? -10 : 20}
                                         textAnchor="middle"
-                                        fontSize="13"
-                                        fontWeight="900"
+                                        fontSize="12"
+                                        fontWeight="bold"
                                         fill={seg.textCol || '#fff'}
-                                        stroke="#fff"
-                                        strokeWidth="0.8"
-                                        paintOrder="stroke"
                                         style={{ fontFamily: 'Arial, sans-serif' }}
                                     >
                                         {seg.name}
@@ -207,22 +181,18 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
                 </svg>
             </div>
 
-            {/* 3. CENTER CAP */}
-            <div className="absolute top-1/2 left-1/2" style={{ transform: 'translate(-50%, -50%)', width: '60px', height: '60px', borderRadius: '50%', background: 'linear-gradient(135deg, #FCD34D, #F59E0B)', border: '4px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20, boxShadow: '0 5px 15px rgba(0,0,0,0.3)' }}>
-                <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#B45309' }}>TÀI</span>
-            </div>
-
-            {/* 4. POINTER (Standard Top) */}
-            <div className="absolute left-1/2" style={{ top: '-24px', transform: 'translateX(-50%)', zIndex: 30, filter: 'drop-shadow(0 4px 4px rgba(0,0,0,0.4))' }}>
-                <svg width="46" height="54" viewBox="0 0 46 54" fill="none">
-                    <path d="M23 54L6 16C6 16 0 6 11 0H35C46 0 40 6 40 16L23 54Z" fill="#DC2626" stroke="#fff" strokeWidth="3" />
-                    <circle cx="23" cy="14" r="7" fill="#FCD34D" />
+            {/* 3. POINTER (Simple Triangle Top) */}
+            <div className="absolute left-1/2" style={{ top: '-15px', transform: 'translateX(-50%)', zIndex: 30, filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.3))' }}>
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                    <path d="M20 40L5 10C5 10 10 0 20 0C30 0 35 10 35 10L20 40Z" fill="#DC2626" stroke="#FFF" strokeWidth="3" />
                 </svg>
             </div>
 
-            <style jsx>{`
-                @keyframes blink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
-            `}</style>
+            {/* 4. CENTER CAP (Small) */}
+            <div className="absolute top-1/2 left-1/2" style={{ transform: 'translate(-50%, -50%)', width: '50px', height: '50px', borderRadius: '50%', background: '#FFF', border: '4px solid #F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20, boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}>
+                <span style={{ fontSize: '1.5rem' }}>🎯</span>
+            </div>
+
         </div>
     );
 }
