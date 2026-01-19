@@ -591,7 +591,7 @@ export default function AdminPage() {
                                         <th style={{ padding: '1rem' }}>Tổng vé</th>
                                         <th style={{ padding: '1rem' }}>Đã dùng</th>
                                         <th style={{ padding: '1rem' }}>Còn lại</th>
-                                        <th style={{ padding: '1rem' }}>Thẻ đang có</th>
+
                                         <th style={{ padding: '1rem' }}>Hành động</th>
                                     </tr>
                                 </thead>
@@ -604,10 +604,7 @@ export default function AdminPage() {
                                             <td style={{ padding: '1rem', color: stat.remainingTickets > 0 ? '#00d26a' : '#aaa', fontWeight: stat.remainingTickets > 0 ? 'bold' : 'normal' }}>
                                                 {stat.remainingTickets}
                                             </td>
-                                            <td style={{ padding: '1rem' }}>
-                                                {stat.collectedCards.length}/11
-                                                {stat.collectedCards.length === 11 && <span style={{ marginLeft: '10px' }}>👑 ĐÃ XONG</span>}
-                                            </td>
+
                                             <td style={{ padding: '1rem', display: 'flex', gap: '0.5rem' }}>
                                                 <button
                                                     onClick={() => handleAddTickets(stat.phone)}
