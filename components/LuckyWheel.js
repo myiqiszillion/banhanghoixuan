@@ -5,7 +5,7 @@ import confetti from 'canvas-confetti';
 
 const WHEEL_SIZE = 360;
 const CENTER = WHEEL_SIZE / 2;
-const RADIUS = WHEEL_SIZE * 0.44;
+const RADIUS = WHEEL_SIZE * 0.42;
 
 const playTickSound = () => {
     try {
@@ -124,14 +124,13 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
     ];
 
     return (
-        <div style={{ position: 'relative', width: '300px', height: '300px', margin: '0 auto', userSelect: 'none' }}>
-
-            {/* 1. OUTER RING (Hoi Xuan Decor) */}
-            <div className="absolute inset-0 rounded-full" style={{ background: 'conic-gradient(#F59E0B, #FDE047, #F59E0B, #FDE047, #F59E0B)', padding: '8px', boxShadow: '0 10px 20px rgba(0,0,0,0.5)' }}>
-                <div className="w-full h-full rounded-full bg-red-900 border-2 border-yellow-600 relative">
+        <div style={{ position: 'relative', width: '320px', height: '320px', margin: '0 auto', userSelect: 'none' }}>
+            {/* 1. OUTER DECORATION RING + LIGHTS (Restored) */}
+            <div className="absolute inset-0 rounded-full" style={{ background: 'conic-gradient(#CA8A04, #FACC15, #CA8A04, #FACC15, #CA8A04)', padding: '8px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+                <div className="w-full h-full rounded-full bg-red-900 relative">
                     {/* Lights */}
-                    {Array.from({ length: 12 }).map((_, i) => {
-                        const deg = i * (360 / 12);
+                    {Array.from({ length: 24 }).map((_, i) => {
+                        const deg = i * (360 / 24);
                         return (
                             <div
                                 key={i}
@@ -140,10 +139,10 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
                                     top: '50%', left: '50%',
                                     width: '8px', height: '8px',
                                     borderRadius: '50%',
-                                    background: '#FFF',
-                                    transform: `translate(-50%, -50%) rotate(${deg}deg) translate(144px)`,
-                                    boxShadow: '0 0 4px #FFF',
-                                    animation: spinning ? `blink 0.5s infinite ${i % 2}s` : 'none'
+                                    background: i % 2 === 0 ? '#FEF08A' : '#ffffff',
+                                    transform: `translate(-50%, -50%) rotate(${deg}deg) translate(148px) rotate(-${deg}deg)`,
+                                    boxShadow: '0 0 5px #FDE047',
+                                    animation: spinning ? `blink 0.5s infinite ${i % 2 === 0 ? 0 : 0.25}s` : 'none'
                                 }}
                             />
                         );
@@ -152,7 +151,7 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
             </div>
 
             {/* 2. WHEEL */}
-            <div className="absolute top-3 left-3 right-3 bottom-3 rounded-full overflow-hidden shadow-inner border-2 border-[#F59E0B]">
+            <div className="absolute top-4 left-4 right-4 bottom-4 rounded-full overflow-hidden" style={{ border: '4px solid #EAB308', background: '#FFFBE6' }}>
                 <svg
                     ref={wheelRef}
                     viewBox={`0 0 ${WHEEL_SIZE} ${WHEEL_SIZE}`}
@@ -167,13 +166,12 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
                         const path = `M ${CENTER} ${CENTER} L ${start[0]} ${start[1]} A ${RADIUS} ${RADIUS} 0 ${largeArc} 1 ${end[0]} ${end[1]} Z`;
 
                         const midA = startA + SEGMENT_ANGLE / 2;
-                        const dist = RADIUS * 0.65; // Center the icon
+                        const dist = RADIUS * 0.65; // Closer to center for Icons
                         const tx = CENTER + dist * Math.cos(midA * Math.PI / 180);
                         const ty = CENTER + dist * Math.sin(midA * Math.PI / 180);
 
-                        // Rotate icon to point inwards/outwards or just upright?
-                        // For emoji, nice to be upright relative to the slice.
-                        const rot = midA + 90;
+                        // Rotate icon to match slice orientation
+                        let rot = midA + 90;
 
                         return (
                             <g key={i}>
@@ -182,12 +180,12 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
                                     <text
                                         y="10"
                                         textAnchor="middle"
-                                        fontSize="48"
-                                        filter="drop-shadow(0 2px 2px rgba(0,0,0,0.2))"
+                                        fontSize="42"
+                                        filter="drop-shadow(0 2px 2px rgba(0,0,0,0.3))"
                                     >
                                         {seg.emoji}
                                     </text>
-                                    {/* Text Removed as requested */}
+                                    {/* Text Removed */}
                                 </g>
                             </g>
                         );
@@ -196,20 +194,20 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
             </div>
 
             {/* 3. CENTER CAP */}
-            <div className="absolute top-1/2 left-1/2" style={{ transform: 'translate(-50%, -50%)', width: '50px', height: '50px', borderRadius: '50%', background: 'linear-gradient(to bottom right, #FCD34D, #F59E0B)', border: '4px solid #FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20, boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>
-                <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#B45309' }}>TÀI</span>
+            <div className="absolute top-1/2 left-1/2" style={{ transform: 'translate(-50%, -50%)', width: '60px', height: '60px', borderRadius: '50%', background: 'linear-gradient(135deg, #FCD34D, #F59E0B)', border: '4px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20, boxShadow: '0 5px 15px rgba(0,0,0,0.3)' }}>
+                <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#B45309' }}>TÀI</span>
             </div>
 
-            {/* 4. POINTER (Floating Top) */}
-            <div className="absolute left-1/2" style={{ top: '-18px', transform: 'translateX(-50%)', zIndex: 30, filter: 'drop-shadow(0 4px 4px rgba(0,0,0,0.4))' }}>
-                <svg width="40" height="50" viewBox="0 0 40 50" fill="none">
-                    <path d="M20 50L5 15C5 15 0 5 10 0H30C40 0 35 15 35 15L20 50Z" fill="#DC2626" stroke="#fff" strokeWidth="3" />
-                    <circle cx="20" cy="12" r="6" fill="#FCD34D" />
+            {/* 4. POINTER (Standard Top - Restored) */}
+            <div className="absolute left-1/2" style={{ top: '-20px', transform: 'translateX(-50%)', zIndex: 30, filter: 'drop-shadow(0 4px 4px rgba(0,0,0,0.4))' }}>
+                <svg width="46" height="54" viewBox="0 0 46 54" fill="none">
+                    <path d="M23 54L6 16C6 16 0 6 11 0H35C46 0 40 6 40 16L23 54Z" fill="#DC2626" stroke="#fff" strokeWidth="3" />
+                    <circle cx="23" cy="14" r="7" fill="#FCD34D" />
                 </svg>
             </div>
 
             <style jsx>{`
-                @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+                @keyframes blink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
             `}</style>
         </div>
     );
