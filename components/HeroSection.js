@@ -3,6 +3,27 @@ import Image from 'next/image';
 export default function HeroSection() {
     return (
         <section className="hero">
+            {/* Gen Z Welcome Banner */}
+            <div className="genz-welcome">
+                <div className="welcome-inner">
+                    <div className="welcome-badge">🎊 HỘI XUÂN 2026 🎊</div>
+                    <h2 className="welcome-title">
+                        <span className="typing-text">Yoo! Chào mừng các "chiến thần ẩm thực" đã ghé chơi~ 🔥</span>
+                    </h2>
+                    <p className="welcome-desc">
+                        <span className="highlight-text">10.11 - THPT Nguyễn Thị Minh Khai</span> tự hào mang đến món xiên siêu cháy trend!
+                        <br />
+                        <span className="slang-text">Đã miệng đến phát "lú"</span> 🤤 • <span className="slang-text">Ngon "nức nở"</span> 😭 • <span className="slang-text">"Real" không cap</span> 💯
+                    </p>
+                    <div className="welcome-tags">
+                        <span className="tag-item fire">🌶️ Cay xé lưỡi</span>
+                        <span className="tag-item sweet">🍯 Ngọt vị beo</span>
+                        <span className="tag-item viral">📸 Check-in triệu like</span>
+                        <span className="tag-item price">💸 Giá sinh viên</span>
+                    </div>
+                </div>
+            </div>
+
             <div className="hero-content">
                 <div className="product-images">
                     <div className="image-card main-image">

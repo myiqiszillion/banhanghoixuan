@@ -303,6 +303,164 @@ body {
   z-index: 1;
 }
 
+/* ===== Gen Z Welcome Banner ===== */
+.genz-welcome {
+  max-width: 900px;
+  margin: 0 auto 3rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.15) 0%, rgba(79, 172, 254, 0.15) 50%, rgba(168, 85, 247, 0.15) 100%);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+
+.genz-welcome::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, rgba(255, 107, 157, 0.1), rgba(79, 172, 254, 0.1), rgba(168, 85, 247, 0.1));
+  animation: shimmerBg 3s ease infinite;
+}
+
+@keyframes shimmerBg {
+
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.welcome-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.welcome-badge {
+  display: inline-block;
+  padding: 0.5rem 1.5rem;
+  background: linear-gradient(135deg, #ffd700 0%, #ff6b35 100%);
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #000;
+  margin-bottom: 1rem;
+  animation: badgeBounce 2s ease-in-out infinite;
+}
+
+@keyframes badgeBounce {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.welcome-title {
+  font-size: clamp(1.3rem, 4vw, 2rem);
+  font-weight: 800;
+  margin-bottom: 1rem;
+  color: #fff;
+}
+
+.typing-text {
+  background: linear-gradient(135deg, #fff 0%, #ffc371 50%, #ff6b9d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.welcome-desc {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+}
+
+.highlight-text {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+}
+
+.slang-text {
+  color: #ffc371;
+  font-weight: 600;
+  font-style: italic;
+}
+
+.welcome-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.tag-item {
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  cursor: default;
+}
+
+.tag-item:hover {
+  transform: translateY(-3px) scale(1.05);
+}
+
+.tag-item.fire {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: #fff;
+}
+
+.tag-item.sweet {
+  background: linear-gradient(135deg, #ffd93d 0%, #ff6b6b 100%);
+  color: #000;
+}
+
+.tag-item.viral {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: #000;
+}
+
+.tag-item.price {
+  background: linear-gradient(135deg, #22c55e 0%, #84cc16 100%);
+  color: #000;
+}
+
+@media (max-width: 768px) {
+  .genz-welcome {
+    margin: 0 auto 2rem;
+    padding: 1.5rem;
+  }
+
+  .welcome-title {
+    font-size: 1.1rem;
+  }
+
+  .welcome-desc {
+    font-size: 0.9rem;
+  }
+
+  .tag-item {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+  }
+}
+
 .hero-content {
   max-width: 1200px;
   margin: 0 auto;
