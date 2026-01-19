@@ -22,13 +22,12 @@ export async function POST(request) {
         const ticketsToAdd = parseInt(tickets) || 1;
 
         // Get current game state
-        const gameState = await db.getGameState(phone) || { collectedCards: [], usedTickets: 0, bonusTickets: 0 };
+        const gameState = await db.getGameState(phone) || { usedTickets: 0, bonusTickets: 0 };
 
         // Add bonus tickets by reducing usedTickets (negative usedTickets = bonus)
         const newUsedTickets = Math.max(0, gameState.usedTickets - ticketsToAdd);
 
         const success = await db.updateGameState(phone, {
-            collectedCards: gameState.collectedCards,
             usedTickets: newUsedTickets,
             bonusTickets: (gameState.bonusTickets || 0) + ticketsToAdd
         });

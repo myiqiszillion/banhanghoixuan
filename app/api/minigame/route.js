@@ -40,7 +40,6 @@ export async function GET(request) {
 
         return NextResponse.json({
             phone,
-            collectedCards: gameState?.collectedCards || [], // Keep for backward compat
             usedTickets: gameState?.usedTickets || 0,
             totalTickets: ticketBalance,
             availableTickets: ticketBalance - (gameState?.usedTickets || 0)
@@ -62,7 +61,7 @@ export async function POST(request) {
         }
 
         // Get current game state
-        const gameState = await db.getGameState(phone) || { collectedCards: [], usedTickets: 0 };
+        const gameState = await db.getGameState(phone) || { usedTickets: 0 };
         const ticketBalance = await db.getTicketBalance(phone);
         const availableTickets = ticketBalance - gameState.usedTickets;
 
@@ -82,7 +81,6 @@ export async function POST(request) {
         const newUsedTickets = gameState.usedTickets + 1;
 
         await db.updateGameState(phone, {
-            collectedCards: gameState.collectedCards, // Keep existing data
             usedTickets: newUsedTickets
         });
 
