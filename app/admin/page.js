@@ -17,7 +17,18 @@ export default function AdminPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    // Initial check (session based? simple state for now)
+    // Check session on mount
+    useEffect(() => {
+        const expiry = localStorage.getItem('admin_session_expiry');
+        if (expiry && parseInt(expiry) > Date.now()) {
+            setIsAuthenticated(true);
+        }
+    }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem('admin_session_expiry');
+        setIsAuthenticated(false);
+    };
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -66,6 +77,8 @@ export default function AdminPage() {
         e.preventDefault();
         if (password === CONFIG.admin.password) {
             setIsAuthenticated(true);
+            // Save session for 3 hours (3 * 60 * 60 * 1000 ms)
+            localStorage.setItem('admin_session_expiry', Date.now() + 10800000);
         } else {
             alert('Sai mật khẩu!');
         }
@@ -326,7 +339,7 @@ export default function AdminPage() {
             <div style={{ padding: '120px 2rem 60px', maxWidth: '1200px', margin: '0 auto' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
                     <h1 style={{ fontSize: '2rem', fontWeight: 'bold' }}>🔐 QUẢN LÝ ĐƠN HÀNG</h1>
-                    <button onClick={() => setIsAuthenticated(false)} className="clear-btn" style={{ padding: '0.5rem 1rem', borderRadius: '8px' }}>Thoát</button>
+                    <button onClick={handleLogout} className="clear-btn" style={{ padding: '0.5rem 1rem', borderRadius: '8px' }}>Thoát</button>
                 </div>
 
                 {/* TABS */}
