@@ -41,8 +41,17 @@ export async function GET() {
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
             
-            -- Add column if it doesn't exist (for migration)
+            CREATE TABLE IF NOT EXISTS game_states (
+                phone VARCHAR(50) PRIMARY KEY,
+                collected_cards TEXT DEFAULT '[]',
+                used_tickets INTEGER DEFAULT 0,
+                bonus_tickets INTEGER DEFAULT 0,
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
+            
+            -- Migrations for existing tables
             ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivered BOOLEAN DEFAULT FALSE;
+            ALTER TABLE game_states ADD COLUMN IF NOT EXISTS bonus_tickets INTEGER DEFAULT 0;
         `);
         return NextResponse.json({ message: 'Database initialized successfully' });
     } catch (error) {
