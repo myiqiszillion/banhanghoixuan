@@ -2,227 +2,173 @@
 
 import { useEffect, useState, useCallback } from 'react';
 
-// 8 segments - simple labels
-const WHEEL_SEGMENTS = [
-    { id: 0, label: '🍀', color: '#6B7280', isLose: true, name: 'May mắn' },
-    { id: 1, label: '🍡', color: '#F97316', isLose: false, name: '+1 Xiên' },
-    { id: 2, label: '🍀', color: '#8B5CF6', isLose: true, name: 'May mắn' },
-    { id: 3, label: '💰', color: '#FBBF24', isLose: false, name: '10K' },
-    { id: 4, label: '🍀', color: '#10B981', isLose: true, name: 'May mắn' },
-    { id: 5, label: '🥤', color: '#3B82F6', isLose: false, name: '1 Ly nước' },
-    { id: 6, label: '🍀', color: '#EC4899', isLose: true, name: 'May mắn' },
-    { id: 7, label: '🍡', color: '#EF4444', isLose: false, name: '+1 Xiên' },
+const SEGMENTS = [
+    { emoji: '🍀', name: 'May mắn', color: '#6B7280', isLose: true },
+    { emoji: '🍡', name: '+1 Xiên', color: '#F97316', isLose: false },
+    { emoji: '🍀', name: 'May mắn', color: '#8B5CF6', isLose: true },
+    { emoji: '💰', name: '10K', color: '#FBBF24', isLose: false },
+    { emoji: '🍀', name: 'May mắn', color: '#10B981', isLose: true },
+    { emoji: '🥤', name: '1 Ly nước', color: '#3B82F6', isLose: false },
+    { emoji: '🍀', name: 'May mắn', color: '#EC4899', isLose: true },
+    { emoji: '🍡', name: '+1 Xiên', color: '#EF4444', isLose: false },
 ];
 
-const PRIZE_WEIGHTS = { 0: 20, 1: 12, 2: 20, 3: 6, 4: 20, 5: 10, 6: 20, 7: 12 };
+const WEIGHTS = [20, 12, 20, 6, 20, 10, 20, 12];
 
 export default function MiniGameModal({ isOpen, onClose }) {
     const [phone, setPhone] = useState('');
     const [isVerified, setIsVerified] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    const [availableTickets, setAvailableTickets] = useState(0);
-    const [isSpinning, setIsSpinning] = useState(false);
-    const [rotation, setRotation] = useState(0);
-    const [currentPrize, setCurrentPrize] = useState(null);
+    const [tickets, setTickets] = useState(0);
+    const [spinning, setSpinning] = useState(false);
+    const [deg, setDeg] = useState(0);
+    const [prize, setPrize] = useState(null);
     const [showResult, setShowResult] = useState(false);
-    const [prizeHistory, setPrizeHistory] = useState([]);
 
-    const loadGameState = useCallback(async (phoneNum) => {
+    const load = useCallback(async (p) => {
         try {
             setIsLoading(true);
-            const res = await fetch(`/api/minigame?phone=${encodeURIComponent(phoneNum)}`);
-            const data = await res.json();
-            if (data.error) { setError(data.error); return false; }
-            setAvailableTickets(data.availableTickets || 0);
+            const r = await fetch(`/api/minigame?phone=${encodeURIComponent(p)}`);
+            const d = await r.json();
+            if (d.error) { setError(d.error); return false; }
+            setTickets(d.availableTickets || 0);
             return true;
-        } catch (e) {
-            setError('Không thể kết nối server');
-            return false;
-        } finally {
-            setIsLoading(false);
-        }
+        } catch { setError('Lỗi kết nối'); return false; }
+        finally { setIsLoading(false); }
     }, []);
 
-    const handleVerify = async (e) => {
+    const verify = async (e) => {
         e.preventDefault();
         setError('');
-        if (!phone || phone.length !== 10) { setError('Vui lòng nhập đúng 10 số điện thoại'); return; }
-        const success = await loadGameState(phone);
-        if (success) setIsVerified(true);
+        if (phone.length !== 10) { setError('Nhập đúng 10 số'); return; }
+        if (await load(phone)) setIsVerified(true);
     };
 
-    const selectPrizeIndex = () => {
-        const totalWeight = Object.values(PRIZE_WEIGHTS).reduce((a, b) => a + b, 0);
-        let random = Math.random() * totalWeight;
-        for (let i = 0; i < 8; i++) { random -= PRIZE_WEIGHTS[i]; if (random <= 0) return i; }
-        return 0;
-    };
-
-    const spinWheel = async () => {
-        if (availableTickets <= 0 || isSpinning) return;
-        setIsSpinning(true);
-        setShowResult(false);
-        setError('');
+    const spin = async () => {
+        if (tickets <= 0 || spinning) return;
+        setSpinning(true); setShowResult(false); setError('');
 
         try {
-            const res = await fetch('/api/minigame', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phone })
-            });
-            const data = await res.json();
-            if (data.error) { setError(data.error); setIsSpinning(false); return; }
+            const r = await fetch('/api/minigame', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone }) });
+            const d = await r.json();
+            if (d.error) { setError(d.error); setSpinning(false); return; }
 
-            const prizeIndex = data.prizeIndex !== undefined ? data.prizeIndex % 8 : selectPrizeIndex();
-            const prize = WHEEL_SEGMENTS[prizeIndex];
+            // Get prize index
+            let idx = d.prizeIndex !== undefined ? d.prizeIndex % 8 : (() => {
+                let total = WEIGHTS.reduce((a, b) => a + b, 0), rnd = Math.random() * total;
+                for (let i = 0; i < 8; i++) { rnd -= WEIGHTS[i]; if (rnd <= 0) return i; }
+                return 0;
+            })();
 
-            // Wheel top is 0deg, segment 0 is at top-right (0-45deg from top)
-            // To land on segment i, we need pointer (at top) to point to segment i
-            const segmentAngle = 45; // 360/8
-            const targetSegmentCenter = prizeIndex * segmentAngle + segmentAngle / 2;
+            // Calculate rotation: segment size is 45deg, we want to land on segment idx
+            // Pointer is at top (0deg). Segment 0 starts at 0deg and spans to 45deg.
+            // Center of segment idx is at idx*45 + 22.5 degrees
+            const segCenter = idx * 45 + 22.5;
             const spins = 5 + Math.floor(Math.random() * 3);
-            const finalRotation = rotation + spins * 360 + (360 - targetSegmentCenter);
-
-            setRotation(finalRotation);
+            // To make segment idx land at top, we rotate wheel so that segCenter aligns with 0deg
+            // That means rotating by (360 - segCenter) to bring it to top
+            const target = deg + spins * 360 + (360 - segCenter);
+            setDeg(target);
 
             setTimeout(() => {
-                setCurrentPrize(prize);
+                setPrize(SEGMENTS[idx]);
                 setShowResult(true);
-                setIsSpinning(false);
-                setAvailableTickets(data.availableTickets);
-                setPrizeHistory(prev => [{ prize, time: new Date().toLocaleTimeString('vi-VN') }, ...prev].slice(0, 5));
+                setSpinning(false);
+                setTickets(d.availableTickets);
             }, 4000);
-        } catch (e) {
-            setError('Lỗi kết nối');
-            setIsSpinning(false);
-        }
+        } catch { setError('Lỗi'); setSpinning(false); }
     };
 
-    useEffect(() => {
-        if (!isOpen) { setPhone(''); setIsVerified(false); setError(''); setShowResult(false); setCurrentPrize(null); }
-    }, [isOpen]);
-
+    useEffect(() => { if (!isOpen) { setPhone(''); setIsVerified(false); setError(''); setShowResult(false); setPrize(null); } }, [isOpen]);
     if (!isOpen) return null;
 
-    // Pre-calculate segment positions for emoji placement
-    const getEmojiPosition = (index) => {
-        const angle = (index * 45 + 22.5) * Math.PI / 180; // center of segment
-        const radius = 75; // distance from center
-        return {
-            x: 140 + radius * Math.sin(angle),
-            y: 140 - radius * Math.cos(angle)
-        };
-    };
+    // Create conic-gradient string
+    const conicGradient = SEGMENTS.map((s, i) => `${s.color} ${i * 45}deg ${(i + 1) * 45}deg`).join(', ');
 
     return (
         <div className="modal-overlay active">
-            <div className="modal-content minigame-modal" style={{ maxWidth: '400px', padding: '1.25rem' }}>
+            <div className="modal-content" style={{ maxWidth: '380px', padding: '1.25rem', background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)', borderRadius: '20px' }}>
                 <button className="modal-close" onClick={onClose}>&times;</button>
 
-                <div style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
-                    <h2 style={{ fontSize: '1.4rem', fontWeight: '900', background: 'linear-gradient(135deg, #ff6b35, #ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                        🎡 VÒNG QUAY MAY MẮN
-                    </h2>
-                </div>
+                <h2 style={{ textAlign: 'center', fontSize: '1.3rem', fontWeight: '900', background: 'linear-gradient(90deg, #ff6b35, #ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '1rem' }}>🎡 VÒNG QUAY MAY MẮN</h2>
 
                 {!isVerified ? (
-                    <form onSubmit={handleVerify}>
-                        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1.25rem', borderRadius: '12px', textAlign: 'center' }}>
-                            <p style={{ color: '#ffcc00', fontSize: '0.85rem', marginBottom: '1rem', padding: '0.5rem', background: 'rgba(255,204,0,0.1)', borderRadius: '8px' }}>💡 Mỗi 3 phần = 1 lượt quay!</p>
-                            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="Số điện thoại" style={{ width: '100%', padding: '0.8rem', fontSize: '1rem', textAlign: 'center', background: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '10px', color: '#fff', marginBottom: '0.75rem' }} />
-                            {error && <p style={{ color: '#ff4444', marginBottom: '0.5rem', fontSize: '0.85rem' }}>❌ {error}</p>}
-                            <button type="submit" disabled={isLoading || phone.length !== 10} style={{ width: '100%', padding: '0.8rem', background: phone.length === 10 ? 'linear-gradient(135deg, #ff6b35, #f7931e)' : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '10px', color: '#fff', fontWeight: '700', cursor: phone.length === 10 ? 'pointer' : 'not-allowed' }}>
-                                {isLoading ? '⏳...' : '🎡 VÀO CHƠI'}
-                            </button>
-                        </div>
+                    <form onSubmit={verify} style={{ textAlign: 'center' }}>
+                        <p style={{ color: '#ffcc00', fontSize: '0.8rem', marginBottom: '0.75rem', background: 'rgba(255,204,0,0.1)', padding: '0.4rem', borderRadius: '8px' }}>💡 Mỗi 3 phần = 1 lượt quay</p>
+                        <input type="tel" value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="SĐT (10 số)" style={{ width: '100%', padding: '0.75rem', textAlign: 'center', background: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '10px', color: '#fff', marginBottom: '0.5rem', fontSize: '1rem' }} />
+                        {error && <p style={{ color: '#ff4444', fontSize: '0.8rem', marginBottom: '0.5rem' }}>❌ {error}</p>}
+                        <button type="submit" disabled={isLoading || phone.length !== 10} style={{ width: '100%', padding: '0.75rem', background: phone.length === 10 ? 'linear-gradient(90deg, #ff6b35, #f7931e)' : '#333', border: 'none', borderRadius: '10px', color: '#fff', fontWeight: '700', cursor: phone.length === 10 ? 'pointer' : 'not-allowed' }}>{isLoading ? '...' : '🎡 VÀO CHƠI'}</button>
                     </form>
                 ) : (
                     <>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,210,106,0.1)', border: '1px solid #00d26a', borderRadius: '8px', padding: '0.4rem 0.6rem', marginBottom: '0.75rem' }}>
-                            <span style={{ color: '#00d26a', fontSize: '0.8rem' }}>✅ {phone}</span>
-                            <span style={{ background: '#ffcc00', color: '#000', padding: '0.15rem 0.5rem', borderRadius: '50px', fontWeight: '800', fontSize: '0.8rem' }}>🎟️ {availableTickets}</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', background: 'rgba(0,210,106,0.1)', border: '1px solid #00d26a', borderRadius: '8px', padding: '0.3rem 0.6rem', marginBottom: '0.75rem', fontSize: '0.8rem' }}>
+                            <span style={{ color: '#00d26a' }}>✅ {phone}</span>
+                            <span style={{ background: '#ffcc00', color: '#000', padding: '0.1rem 0.4rem', borderRadius: '20px', fontWeight: '800' }}>🎟️ {tickets}</span>
                         </div>
 
-                        {error && <div style={{ background: 'rgba(255,68,68,0.1)', border: '1px solid #ff4444', borderRadius: '8px', padding: '0.4rem', marginBottom: '0.5rem', textAlign: 'center', color: '#ff4444', fontSize: '0.8rem' }}>❌ {error}</div>}
+                        {error && <p style={{ color: '#ff4444', fontSize: '0.8rem', textAlign: 'center', marginBottom: '0.5rem' }}>❌ {error}</p>}
 
-                        {/* Wheel */}
-                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem', position: 'relative' }}>
-                            <div style={{ position: 'absolute', top: '-5px', left: '50%', transform: 'translateX(-50%)', zIndex: 20, fontSize: '1.3rem' }}>▼</div>
+                        {/* WHEEL */}
+                        <div style={{ display: 'flex', justifyContent: 'center', position: 'relative', marginBottom: '0.75rem' }}>
+                            {/* Pointer */}
+                            <div style={{ position: 'absolute', top: '0', left: '50%', transform: 'translateX(-50%)', zIndex: 10, fontSize: '1.5rem' }}>🔻</div>
 
-                            <div style={{ width: '280px', height: '280px', position: 'relative' }}>
-                                {/* Outer glow ring */}
-                                <div style={{ position: 'absolute', inset: '-4px', borderRadius: '50%', background: 'linear-gradient(135deg, #ffd700, #ff8c00, #ffd700)', padding: '4px' }}>
-                                    <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: '#1a1a2e' }}></div>
-                                </div>
+                            {/* Wheel container */}
+                            <div style={{ width: '260px', height: '260px', borderRadius: '50%', padding: '6px', background: 'linear-gradient(135deg, #ffd700, #ff8c00)', boxShadow: '0 0 30px rgba(255,215,0,0.5)' }}>
+                                {/* Inner wheel that rotates */}
+                                <div style={{
+                                    width: '100%', height: '100%', borderRadius: '50%', position: 'relative',
+                                    background: `conic-gradient(from 0deg, ${conicGradient})`,
+                                    transform: `rotate(${deg}deg)`,
+                                    transition: spinning ? 'transform 4s cubic-bezier(0.17, 0.67, 0.05, 0.99)' : 'none',
+                                    boxShadow: 'inset 0 0 20px rgba(0,0,0,0.3)'
+                                }}>
+                                    {/* Segment lines */}
+                                    {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
+                                        <div key={i} style={{
+                                            position: 'absolute', left: '50%', top: '50%', width: '50%', height: '2px',
+                                            background: 'rgba(255,255,255,0.4)', transformOrigin: 'left center',
+                                            transform: `rotate(${i * 45}deg)`
+                                        }} />
+                                    ))}
 
-                                {/* Spinning wheel */}
-                                <svg width="280" height="280" style={{ position: 'absolute', top: 0, left: 0, transform: `rotate(${rotation}deg)`, transition: isSpinning ? 'transform 4s cubic-bezier(0.17, 0.67, 0.05, 0.99)' : 'none' }}>
-                                    {/* Pie segments */}
-                                    {WHEEL_SEGMENTS.map((seg, i) => {
-                                        const startAngle = i * 45 - 90;
-                                        const endAngle = (i + 1) * 45 - 90;
-                                        const startRad = startAngle * Math.PI / 180;
-                                        const endRad = endAngle * Math.PI / 180;
-                                        const x1 = 140 + 130 * Math.cos(startRad);
-                                        const y1 = 140 + 130 * Math.sin(startRad);
-                                        const x2 = 140 + 130 * Math.cos(endRad);
-                                        const y2 = 140 + 130 * Math.sin(endRad);
-
-                                        const emojiPos = getEmojiPosition(i);
-
+                                    {/* Emojis - positioned in center of each segment */}
+                                    {SEGMENTS.map((s, i) => {
+                                        const angle = i * 45 + 22.5; // center of segment in degrees
+                                        const rad = (angle - 90) * Math.PI / 180; // -90 to start from top
+                                        const r = 85; // radius from center
+                                        const x = r * Math.cos(rad);
+                                        const y = r * Math.sin(rad);
                                         return (
-                                            <g key={i}>
-                                                <path d={`M140,140 L${x1},${y1} A130,130 0 0,1 ${x2},${y2} Z`} fill={seg.color} stroke="rgba(255,255,255,0.3)" strokeWidth="2" />
-                                                <text x={emojiPos.x} y={emojiPos.y + 5} textAnchor="middle" fontSize="28">{seg.label}</text>
-                                            </g>
+                                            <div key={i} style={{
+                                                position: 'absolute',
+                                                left: '50%', top: '50%',
+                                                transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+                                                fontSize: '1.8rem'
+                                            }}>{s.emoji}</div>
                                         );
                                     })}
 
-                                    {/* Center circle */}
-                                    <circle cx="140" cy="140" r="30" fill="#1a1a2e" stroke="#ffd700" strokeWidth="4" />
-                                    <text x="140" y="148" textAnchor="middle" fontSize="24">🎡</text>
-                                </svg>
-
-                                {/* Decorative lights */}
-                                {[...Array(12)].map((_, i) => {
-                                    const angle = i * 30 * Math.PI / 180;
-                                    return (
-                                        <div key={i} style={{
-                                            position: 'absolute',
-                                            width: '8px', height: '8px',
-                                            borderRadius: '50%',
-                                            background: '#ffd700',
-                                            left: `${140 + 136 * Math.sin(angle) - 4}px`,
-                                            top: `${140 - 136 * Math.cos(angle) - 4}px`,
-                                            boxShadow: '0 0 6px #ffd700'
-                                        }} />
-                                    );
-                                })}
+                                    {/* Center button */}
+                                    <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: '50px', height: '50px', borderRadius: '50%', background: '#1a1a2e', border: '4px solid #ffd700', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', boxShadow: '0 0 15px rgba(0,0,0,0.5)' }}>🎡</div>
+                                </div>
                             </div>
                         </div>
 
                         {/* Result */}
-                        {showResult && currentPrize && (
-                            <div style={{ background: currentPrize.isLose ? 'rgba(100,100,100,0.2)' : 'rgba(255,215,0,0.15)', border: `2px solid ${currentPrize.isLose ? '#666' : '#ffd700'}`, borderRadius: '10px', padding: '0.6rem', marginBottom: '0.6rem', textAlign: 'center' }}>
-                                <span style={{ fontSize: '1.8rem' }}>{currentPrize.label}</span>
-                                <div style={{ fontSize: '0.95rem', fontWeight: 'bold', color: currentPrize.isLose ? '#aaa' : '#ffd700' }}>
-                                    {currentPrize.isLose ? 'Chúc may mắn lần sau!' : `🎉 ${currentPrize.name}`}
-                                </div>
-                                {!currentPrize.isLose && <p style={{ color: '#00d26a', fontSize: '0.7rem', margin: '0.2rem 0 0' }}>📸 Chụp màn hình nhận quà!</p>}
+                        {showResult && prize && (
+                            <div style={{ background: prize.isLose ? 'rgba(100,100,100,0.2)' : 'rgba(255,215,0,0.15)', border: `2px solid ${prize.isLose ? '#666' : '#ffd700'}`, borderRadius: '10px', padding: '0.6rem', marginBottom: '0.6rem', textAlign: 'center' }}>
+                                <div style={{ fontSize: '2rem' }}>{prize.emoji}</div>
+                                <div style={{ fontWeight: 'bold', color: prize.isLose ? '#999' : '#ffd700' }}>{prize.isLose ? 'Chúc may mắn lần sau!' : `🎉 ${prize.name}`}</div>
+                                {!prize.isLose && <p style={{ color: '#00d26a', fontSize: '0.7rem', marginTop: '0.2rem' }}>📸 Chụp màn hình nhận quà!</p>}
                             </div>
                         )}
 
-                        {/* Spin Button */}
-                        <button onClick={spinWheel} disabled={availableTickets <= 0 || isSpinning} style={{ width: '100%', padding: '0.85rem', background: availableTickets > 0 && !isSpinning ? 'linear-gradient(135deg, #ff6b35, #f7931e)' : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '10px', color: '#fff', fontWeight: '700', fontSize: '1rem', cursor: availableTickets > 0 && !isSpinning ? 'pointer' : 'not-allowed' }}>
-                            {isSpinning ? '⏳ Đang quay...' : availableTickets > 0 ? '🎡 QUAY NGAY' : '❌ Hết lượt'}
+                        {/* Spin button */}
+                        <button onClick={spin} disabled={tickets <= 0 || spinning} style={{ width: '100%', padding: '0.8rem', background: tickets > 0 && !spinning ? 'linear-gradient(90deg, #ff6b35, #f7931e)' : '#333', border: 'none', borderRadius: '10px', color: '#fff', fontWeight: '700', fontSize: '1rem', cursor: tickets > 0 && !spinning ? 'pointer' : 'not-allowed' }}>
+                            {spinning ? '⏳ Đang quay...' : tickets > 0 ? '🎡 QUAY' : '❌ Hết lượt'}
                         </button>
-
-                        {prizeHistory.length > 0 && (
-                            <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.3rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                                {prizeHistory.map((h, i) => <span key={i} style={{ fontSize: '1rem' }}>{h.prize.label}</span>)}
-                            </div>
-                        )}
                     </>
                 )}
             </div>
