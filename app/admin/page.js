@@ -110,8 +110,8 @@ export default function AdminPage() {
         }
     };
 
-    const handleAddTickets = async (phone, amount = 1) => {
-        const ticketsToAdd = prompt(`Nhập số vé muốn thêm cho ${phone}:`, '1');
+    const handleAddTickets = async (phone, amount = null) => {
+        const ticketsToAdd = amount || prompt(`Nhập số vé muốn thêm cho ${phone}:`, '1');
         if (!ticketsToAdd || isNaN(ticketsToAdd) || parseInt(ticketsToAdd) <= 0) return;
 
         try {
@@ -531,6 +531,42 @@ export default function AdminPage() {
                 ) : (
                     // MINIGAME TAB
                     <div className="orders-list">
+                        {/* Manual Add Tickets Form */}
+                        <div style={{ background: 'rgba(0,210,106,0.1)', border: '1px solid rgba(0,210,106,0.3)', borderRadius: '12px', padding: '1rem', marginBottom: '1rem' }}>
+                            <h4 style={{ color: '#00d26a', marginBottom: '0.75rem', fontSize: '0.95rem' }}>➕ Thêm vé thủ công</h4>
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                <input
+                                    type="tel"
+                                    id="addTicketPhone"
+                                    placeholder="Số điện thoại"
+                                    style={{ flex: '1', minWidth: '150px', padding: '0.6rem', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: '#fff' }}
+                                />
+                                <input
+                                    type="number"
+                                    id="addTicketAmount"
+                                    placeholder="Số vé"
+                                    defaultValue="1"
+                                    min="1"
+                                    style={{ width: '80px', padding: '0.6rem', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', color: '#fff', textAlign: 'center' }}
+                                />
+                                <button
+                                    onClick={() => {
+                                        const phone = document.getElementById('addTicketPhone').value;
+                                        const amount = document.getElementById('addTicketAmount').value;
+                                        if (phone && phone.length === 10) {
+                                            handleAddTickets(phone, parseInt(amount) || 1);
+                                            document.getElementById('addTicketPhone').value = '';
+                                        } else {
+                                            alert('Nhập đúng 10 số điện thoại!');
+                                        }
+                                    }}
+                                    style={{ padding: '0.6rem 1.2rem', background: 'linear-gradient(90deg, #00d26a, #059669)', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: '700', cursor: 'pointer' }}
+                                >
+                                    ➕ Thêm vé
+                                </button>
+                            </div>
+                        </div>
+
                         <div style={{ marginBottom: '1rem', color: '#aaa', fontStyle: 'italic' }}>
                             * Danh sách người chơi và trạng thái vé
                         </div>
