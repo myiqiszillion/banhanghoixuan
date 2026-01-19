@@ -4,14 +4,14 @@ import { useEffect, useState, useCallback } from 'react';
 import LuckyWheel from './LuckyWheel';
 
 const SEGMENTS = [
-    { emoji: '🧧', name: 'Chúc may mắn', color: '#FFF7ED', textCol: '#C2410C', isLose: true }, // Cream + Orange Text (Lose)
-    { emoji: '🍡', name: 'Tặng 1 Xiên', color: '#DC2626', textCol: '#FEF3C7', isLose: false }, // Red + Gold Text (Win)
     { emoji: '🧧', name: 'Chúc may mắn', color: '#FFF7ED', textCol: '#C2410C', isLose: true },
-    { emoji: '💰', name: 'Tặng 10K', color: '#F59E0B', textCol: '#78350F', isLose: false },    // Gold + Brown Text (Win)
+    { emoji: '🍡', name: '01 Xiên', color: '#DC2626', textCol: '#FEF3C7', isLose: false },
     { emoji: '🧧', name: 'Chúc may mắn', color: '#FFF7ED', textCol: '#C2410C', isLose: true },
-    { emoji: '🥤', name: 'Tặng 1 Ly', color: '#2563EB', textCol: '#FFFFFF', isLose: false },   // Blue + White (Win)
+    { emoji: '💰', name: '10K Tiền mặt', color: '#F59E0B', textCol: '#78350F', isLose: false },
     { emoji: '🧧', name: 'Chúc may mắn', color: '#FFF7ED', textCol: '#C2410C', isLose: true },
-    { emoji: '🍡', name: 'Tặng 1 Xiên', color: '#DC2626', textCol: '#FEF3C7', isLose: false },
+    { emoji: '🥤', name: '01 Ly nước', color: '#2563EB', textCol: '#FFFFFF', isLose: false },
+    { emoji: '🧧', name: 'Chúc may mắn', color: '#FFF7ED', textCol: '#C2410C', isLose: true },
+    { emoji: '🍡', name: '01 Xiên', color: '#DC2626', textCol: '#FEF3C7', isLose: false },
 ];
 
 export default function MiniGameModal({ isOpen, onClose }) {

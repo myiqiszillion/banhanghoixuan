@@ -3,11 +3,10 @@
 import { useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
 
-const WHEEL_SIZE = 360; // Standard size
+const WHEEL_SIZE = 360;
 const CENTER = WHEEL_SIZE / 2;
-const RADIUS = WHEEL_SIZE * 0.42; // Leave room for border
+const RADIUS = WHEEL_SIZE * 0.42;
 
-// --- Audio Helpers ---
 const playTickSound = () => {
     try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -66,20 +65,13 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
 
     const startSpin = () => {
         const current = rotationRef.current;
-        const spins = 360 * 6; // Spin 6 times
+        const spins = 360 * 6;
         const randomOffset = (Math.random() - 0.5) * (SEGMENT_ANGLE - 2);
-        // Logic: Pointer is at TOP (270deg is top in SVG if 0 is right)
-        // Actually, we rotate the <g> group.
-        // Let's assume Segment 0 starts at 0deg (Right).
-        // To make Segment 0 hit Top (270deg), we need Rotation = 270.
-        // Index i center: i*Angle + Angle/2.
-        // Rotation + (i*Angle + Angle/2) = 270
-        // => Rotation = 270 - (i*Angle + Angle/2)
 
         const sectorAngle = prizeIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
+        // Target: 270deg (Top)
         const targetRotation = current + spins + (270 - sectorAngle - (current % 360)) + randomOffset;
 
-        // Normalize
         const finalTarget = targetRotation < current + 360 * 5 ? targetRotation + 360 : targetRotation;
 
         startTimeRef.current = null;
@@ -98,16 +90,14 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
 
         if (elapsed < duration) {
             const t = elapsed / duration;
-            const ease = 1 - Math.pow(1 - t, 4); // Quartic Ease Out
+            const ease = 1 - Math.pow(1 - t, 4);
             const newRot = startRotaRef.current + (targetRotaRef.current - startRotaRef.current) * ease;
 
-            // DOM Update
             rotationRef.current = newRot;
             if (wheelRef.current) {
                 wheelRef.current.style.transform = `rotate(${newRot}deg)`;
             }
 
-            // Sound
             const currentTick = Math.floor(newRot / SEGMENT_ANGLE);
             if (currentTick > lastTickRef.current) {
                 playTickSound();
@@ -115,7 +105,6 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
             }
             requestRef.current = requestAnimationFrame(animate);
         } else {
-            // Finish
             const finalRot = targetRotaRef.current;
             rotationRef.current = finalRot;
             if (wheelRef.current) wheelRef.current.style.transform = `rotate(${finalRot}deg)`;
@@ -136,24 +125,25 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
     ];
 
     return (
-        <div className="relative w-[320px] h-[320px] mx-auto select-none">
-            {/* 1. OUTER DECORATION RING + LIGHTS */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-b from-yellow-600 via-yellow-400 to-yellow-700 shadow-2xl p-2">
-                <div className="w-full h-full rounded-full bg-red-900 border-4 border-yellow-800 relative">
-                    {/* Dots / Lights */}
+        <div style={{ position: 'relative', width: '320px', height: '320px', margin: '0 auto', userSelect: 'none' }}>
+            {/* 1. OUTER RING */}
+            <div className="absolute inset-0 rounded-full" style={{ background: 'conic-gradient(#CA8A04, #FACC15, #CA8A04, #FACC15, #CA8A04)', padding: '8px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+                <div className="w-full h-full rounded-full bg-red-900 relative">
+                    {/* Lights */}
                     {Array.from({ length: 24 }).map((_, i) => {
-                        const angle = (i * 360 / 24) * (Math.PI / 180);
-                        const r = 152; // bit smaller than container
-                        const x = 156 + r * Math.cos(angle); // 156 approx center for 320/2-border
-                        const y = 156 + r * Math.sin(angle);
+                        const deg = i * (360 / 24);
                         return (
                             <div
                                 key={i}
-                                className="absolute w-3 h-3 rounded-full bg-white shadow-[0_0_5px_#fff]"
                                 style={{
-                                    left: '50%', top: '50%',
-                                    transform: `translate(${r * Math.cos(angle) - 6}px, ${r * Math.sin(angle) - 6}px)`,
-                                    animation: spinning ? `blink 1s infinite ${i % 2 * 0.5}s` : 'none'
+                                    position: 'absolute',
+                                    top: '50%', left: '50%',
+                                    width: '8px', height: '8px',
+                                    borderRadius: '50%',
+                                    background: i % 2 === 0 ? '#FEF08A' : '#ffffff',
+                                    transform: `translate(-50%, -50%) rotate(${deg}deg) translate(148px) rotate(-${deg}deg)`,
+                                    boxShadow: '0 0 5px #FDE047',
+                                    animation: spinning ? `blink 0.5s infinite ${i % 2 === 0 ? 0 : 0.25}s` : 'none'
                                 }}
                             />
                         );
@@ -161,13 +151,12 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
                 </div>
             </div>
 
-            {/* 2. THE ROTATING WHEEL */}
-            <div className="absolute top-4 left-4 right-4 bottom-4 rounded-full overflow-hidden shadow-inner ring-4 ring-yellow-500/50 bg-[#FFFBE6]">
+            {/* 2. WHEEL */}
+            <div className="absolute top-4 left-4 right-4 bottom-4 rounded-full overflow-hidden" style={{ border: '4px solid #EAB308', background: '#FFFBE6' }}>
                 <svg
                     ref={wheelRef}
                     viewBox={`0 0 ${WHEEL_SIZE} ${WHEEL_SIZE}`}
-                    className="w-full h-full will-change-transform"
-                    style={{ transform: 'rotate(0deg)' }}
+                    style={{ width: '100%', height: '100%', willChange: 'transform' }}
                 >
                     {segments.map((seg, i) => {
                         const startA = i * SEGMENT_ANGLE;
@@ -177,34 +166,37 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
                         const largeArc = SEGMENT_ANGLE > 180 ? 1 : 0;
                         const path = `M ${CENTER} ${CENTER} L ${start[0]} ${start[1]} A ${RADIUS} ${RADIUS} 0 ${largeArc} 1 ${end[0]} ${end[1]} Z`;
 
-                        // Text Position
                         const midA = startA + SEGMENT_ANGLE / 2;
-                        const dist = RADIUS * 0.65;
+                        const dist = RADIUS * 0.78; // Push text further out
                         const tx = CENTER + dist * Math.cos(midA * Math.PI / 180);
                         const ty = CENTER + dist * Math.sin(midA * Math.PI / 180);
-                        // Rotate text to be readable (tangent + flip)
-                        // Rotate (midA + 90) make it tangent.
+
+                        // Smart Rotation: Flip text on left side to be readable
+                        let rot = midA + 90;
+                        if (midA > 90 && midA < 270) rot += 180;
+
                         return (
                             <g key={i}>
-                                <path d={path} fill={seg.color} stroke="#fff" strokeWidth="2" />
-                                <g transform={`translate(${tx}, ${ty}) rotate(${midA + 90})`}>
+                                <path d={path} fill={seg.color} stroke="#FDE047" strokeWidth="2" />
+                                <g transform={`translate(${tx}, ${ty}) rotate(${rot})`}>
                                     <text
-                                        y="-10"
+                                        y={midA > 90 && midA < 270 ? 20 : -10} // Adjust emoji pos based on flip
                                         textAnchor="middle"
-                                        fontSize="36"
+                                        fontSize="32"
                                         filter="drop-shadow(0 2px 2px rgba(0,0,0,0.3))"
                                     >
                                         {seg.emoji}
                                     </text>
                                     <text
-                                        y="25"
+                                        y={midA > 90 && midA < 270 ? -15 : 24} // Adjust text pos based on flip
                                         textAnchor="middle"
-                                        fontSize="14"
+                                        fontSize="13"
                                         fontWeight="900"
                                         fill={seg.textCol || '#fff'}
                                         stroke="#fff"
-                                        strokeWidth="0.5" // White outline for contrast
-                                        fontFamily="Arial, sans-serif"
+                                        strokeWidth="0.8"
+                                        paintOrder="stroke"
+                                        style={{ fontFamily: 'Arial, sans-serif' }}
                                     >
                                         {seg.name}
                                     </text>
@@ -216,17 +208,15 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
             </div>
 
             {/* 3. CENTER CAP */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-gradient-to-br from-yellow-300 to-yellow-600 border-4 border-white shadow-xl z-20 flex items-center justify-center">
-                <span className="text-2xl font-bold text-red-700 drop-shadow-sm">TÀI</span>
+            <div className="absolute top-1/2 left-1/2" style={{ transform: 'translate(-50%, -50%)', width: '60px', height: '60px', borderRadius: '50%', background: 'linear-gradient(135deg, #FCD34D, #F59E0B)', border: '4px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20, boxShadow: '0 5px 15px rgba(0,0,0,0.3)' }}>
+                <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#B45309' }}>TÀI</span>
             </div>
 
-            {/* 4. POINTER (Absolute Top Center) */}
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-30 drop-shadow-xl filter">
-                {/* Simple Arrow SVG */}
-                <svg width="40" height="50" viewBox="0 0 40 50" fill="none">
-                    {/* Main body */}
-                    <path d="M20 50L5 15C5 15 0 5 10 0H30C40 0 35 15 35 15L20 50Z" fill="#DC2626" stroke="#fff" strokeWidth="3" />
-                    <circle cx="20" cy="12" r="6" fill="#FCD34D" />
+            {/* 4. POINTER (Standard Top) */}
+            <div className="absolute left-1/2" style={{ top: '-24px', transform: 'translateX(-50%)', zIndex: 30, filter: 'drop-shadow(0 4px 4px rgba(0,0,0,0.4))' }}>
+                <svg width="46" height="54" viewBox="0 0 46 54" fill="none">
+                    <path d="M23 54L6 16C6 16 0 6 11 0H35C46 0 40 6 40 16L23 54Z" fill="#DC2626" stroke="#fff" strokeWidth="3" />
+                    <circle cx="23" cy="14" r="7" fill="#FCD34D" />
                 </svg>
             </div>
 
