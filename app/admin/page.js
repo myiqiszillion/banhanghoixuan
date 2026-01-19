@@ -110,6 +110,32 @@ export default function AdminPage() {
         }
     };
 
+    const handleAddTickets = async (phone, amount = 1) => {
+        const ticketsToAdd = prompt(`Nhập số vé muốn thêm cho ${phone}:`, '1');
+        if (!ticketsToAdd || isNaN(ticketsToAdd) || parseInt(ticketsToAdd) <= 0) return;
+
+        try {
+            const res = await fetch('/api/admin/add-tickets', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    password: CONFIG.admin.password,
+                    phone,
+                    tickets: parseInt(ticketsToAdd)
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(`✅ ${data.message}`);
+                fetchGameStats();
+            } else {
+                alert(`❌ Lỗi: ${data.error}`);
+            }
+        } catch (e) {
+            alert('❌ Lỗi kết nối');
+        }
+    };
+
     const handleExport = () => {
         // Filter only PAID orders for Google Sheet export
         const paidOrders = orders.filter(o => o.status === 'paid');
@@ -533,7 +559,14 @@ export default function AdminPage() {
                                                 {stat.collectedCards.length}/11
                                                 {stat.collectedCards.length === 11 && <span style={{ marginLeft: '10px' }}>👑 ĐÃ XONG</span>}
                                             </td>
-                                            <td style={{ padding: '1rem' }}>
+                                            <td style={{ padding: '1rem', display: 'flex', gap: '0.5rem' }}>
+                                                <button
+                                                    onClick={() => handleAddTickets(stat.phone)}
+                                                    style={{ background: 'rgba(0, 210, 106, 0.2)', border: '1px solid #00d26a', color: '#00d26a', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer' }}
+                                                    title="Thêm vé"
+                                                >
+                                                    ➕ Vé
+                                                </button>
                                                 <button
                                                     onClick={() => handleDeleteGameState(stat.phone)}
                                                     style={{ background: 'rgba(255, 68, 68, 0.2)', border: '1px solid #ff4444', color: '#ff4444', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer' }}
