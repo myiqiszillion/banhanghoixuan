@@ -1,15 +1,13 @@
-import { CONFIG } from '@/lib/config';
-
 export default function PromoSection() {
     return (
         <section className="promo-section">
-            {/* Grand Prize Banner */}
+            {/* Lucky Wheel Banner */}
             <div className="prize-banner">
                 <div className="prize-glow"></div>
                 <div className="prize-content">
-                    <div className="prize-label">🏆 GIẢI THƯỞNG KHỦNG</div>
-                    <div className="prize-amount">{CONFIG.miniGame.prizeFormatted}</div>
-                    <div className="prize-desc">Sưu tập đủ 11 thẻ để nhận giải!</div>
+                    <div className="prize-label">🎡 VÒNG QUAY MAY MẮN</div>
+                    <div className="prize-amount" style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)' }}>QUAY LÀ TRÚNG!</div>
+                    <div className="prize-desc">10K • +1 Xiên • 1 Ly Nước</div>
                 </div>
             </div>
 
@@ -21,9 +19,9 @@ export default function PromoSection() {
 
                     <div className="promo-item">
                         <p className="promo-text">
-                            🎴 Mua <span className="highlight">3 phần</span> = Tặng <span className="highlight">1 VÉ LẬT THẺ</span>
+                            🎡 Mua <span className="highlight">3 phần</span> = Tặng <span className="highlight">1 LƯỢT QUAY</span>
                         </p>
-                        <p className="promo-note">Sưu tập 11 thẻ để ẵm giải {CONFIG.miniGame.prizeFormatted}!</p>
+                        <p className="promo-note">Quay là trúng - 100% có quà!</p>
                     </div>
 
                     <div className="promo-divider"></div>
@@ -40,3 +38,4 @@ export default function PromoSection() {
         </section>
     );
 }
+
