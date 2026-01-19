@@ -5,9 +5,8 @@ import confetti from 'canvas-confetti';
 
 const WHEEL_SIZE = 360;
 const CENTER = WHEEL_SIZE / 2;
-const RADIUS = WHEEL_SIZE * 0.45;
+const RADIUS = WHEEL_SIZE * 0.44;
 
-// Simple sound (Clicking sound)
 const playTickSound = () => {
     try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -16,13 +15,14 @@ const playTickSound = () => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(800, ctx.currentTime);
-        gain.gain.setValueAtTime(0.05, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
+        osc.frequency.setValueAtTime(600, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
-        osc.stop(ctx.currentTime + 0.03);
+        osc.stop(ctx.currentTime + 0.05);
     } catch (e) { }
 };
 
@@ -31,16 +31,17 @@ const playWinSound = () => {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (!AudioContext) return;
         const ctx = new AudioContext();
-        [500, 600, 800].forEach((f, i) => {
+        const now = ctx.currentTime;
+        [0, 0.2, 0.4, 0.6].forEach((delay, i) => {
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
-            osc.frequency.value = f;
-            gain.gain.setValueAtTime(0.1, ctx.currentTime + i * 0.1);
-            gain.gain.linearRampToValueAtTime(0, ctx.currentTime + i * 0.1 + 0.2);
+            osc.frequency.value = 600 + i * 200;
+            gain.gain.setValueAtTime(0.1, now + delay);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.3);
             osc.connect(gain);
             gain.connect(ctx.destination);
-            osc.start(ctx.currentTime + i * 0.1);
-            osc.stop(ctx.currentTime + i * 0.1 + 0.2);
+            osc.start(now + delay);
+            osc.stop(now + delay + 0.3);
         });
     } catch (e) { }
 };
@@ -64,11 +65,12 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
 
     const startSpin = () => {
         const current = rotationRef.current;
-        const spins = 360 * 5;
+        const spins = 360 * 6;
         const randomOffset = (Math.random() - 0.5) * (SEGMENT_ANGLE - 2);
 
         const sectorAngle = prizeIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
         const targetRotation = current + spins + (270 - sectorAngle - (current % 360)) + randomOffset;
+
         const finalTarget = targetRotation < current + 360 * 5 ? targetRotation + 360 : targetRotation;
 
         startTimeRef.current = null;
@@ -83,11 +85,11 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
     const animate = (time) => {
         if (!startTimeRef.current) startTimeRef.current = time;
         const elapsed = time - startTimeRef.current;
-        const duration = 4000;
+        const duration = 5000;
 
         if (elapsed < duration) {
             const t = elapsed / duration;
-            const ease = 1 - Math.pow(1 - t, 3); // Cubic Ease Out
+            const ease = 1 - Math.pow(1 - t, 4);
             const newRot = startRotaRef.current + (targetRotaRef.current - startRotaRef.current) * ease;
 
             rotationRef.current = newRot;
@@ -113,7 +115,7 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
     };
 
     const fireConfetti = () => {
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
     };
 
     const getCoord = (percent, r = RADIUS) => [
@@ -122,34 +124,35 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
     ];
 
     return (
-        <div style={{ width: '100%', maxWidth: '340px', margin: '0 auto', position: 'relative', padding: '20px 0' }}>
+        <div style={{ position: 'relative', width: '300px', height: '300px', margin: '0 auto', userSelect: 'none' }}>
 
-            {/* POINTER (Top Center) - Outside Wheel Container to avoid clipping */}
-            <div style={{
-                position: 'absolute',
-                top: '0',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                zIndex: 50,
-                filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.3))'
-            }}>
-                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                    <path d="M20 40L5 5H35L20 40Z" fill="#FCD34D" stroke="#000" strokeWidth="2" />
-                </svg>
+            {/* 1. OUTER RING (Hoi Xuan Decor) */}
+            <div className="absolute inset-0 rounded-full" style={{ background: 'conic-gradient(#F59E0B, #FDE047, #F59E0B, #FDE047, #F59E0B)', padding: '8px', boxShadow: '0 10px 20px rgba(0,0,0,0.5)' }}>
+                <div className="w-full h-full rounded-full bg-red-900 border-2 border-yellow-600 relative">
+                    {/* Lights */}
+                    {Array.from({ length: 12 }).map((_, i) => {
+                        const deg = i * (360 / 12);
+                        return (
+                            <div
+                                key={i}
+                                style={{
+                                    position: 'absolute',
+                                    top: '50%', left: '50%',
+                                    width: '8px', height: '8px',
+                                    borderRadius: '50%',
+                                    background: '#FFF',
+                                    transform: `translate(-50%, -50%) rotate(${deg}deg) translate(144px)`,
+                                    boxShadow: '0 0 4px #FFF',
+                                    animation: spinning ? `blink 0.5s infinite ${i % 2}s` : 'none'
+                                }}
+                            />
+                        );
+                    })}
+                </div>
             </div>
 
-            {/* WHEEL CONTAINER */}
-            <div style={{
-                width: '300px',
-                height: '300px',
-                margin: '0 auto',
-                borderRadius: '50%',
-                border: '8px solid #374151',
-                background: '#FFF',
-                position: 'relative',
-                overflow: 'hidden',
-                boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
-            }}>
+            {/* 2. WHEEL */}
+            <div className="absolute top-3 left-3 right-3 bottom-3 rounded-full overflow-hidden shadow-inner border-2 border-[#F59E0B]">
                 <svg
                     ref={wheelRef}
                     viewBox={`0 0 ${WHEEL_SIZE} ${WHEEL_SIZE}`}
@@ -164,53 +167,50 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
                         const path = `M ${CENTER} ${CENTER} L ${start[0]} ${start[1]} A ${RADIUS} ${RADIUS} 0 ${largeArc} 1 ${end[0]} ${end[1]} Z`;
 
                         const midA = startA + SEGMENT_ANGLE / 2;
-                        const dist = RADIUS * 0.72;
+                        const dist = RADIUS * 0.65; // Center the icon
                         const tx = CENTER + dist * Math.cos(midA * Math.PI / 180);
                         const ty = CENTER + dist * Math.sin(midA * Math.PI / 180);
 
-                        // Flip Logic for Text Readability
-                        let rot = midA + 90;
-                        if (midA > 90 && midA < 270) rot += 180;
+                        // Rotate icon to point inwards/outwards or just upright?
+                        // For emoji, nice to be upright relative to the slice.
+                        const rot = midA + 90;
 
                         return (
                             <g key={i}>
-                                <path d={path} fill={seg.color} stroke="#FFF" strokeWidth="1" />
+                                <path d={path} fill={seg.color} stroke="#FDE047" strokeWidth="2" />
                                 <g transform={`translate(${tx}, ${ty}) rotate(${rot})`}>
                                     <text
-                                        y={midA > 90 && midA < 270 ? 25 : -10}
+                                        y="10"
                                         textAnchor="middle"
-                                        fontSize="32"
+                                        fontSize="48"
+                                        filter="drop-shadow(0 2px 2px rgba(0,0,0,0.2))"
                                     >
                                         {seg.emoji}
                                     </text>
-                                    <text
-                                        y={midA > 90 && midA < 270 ? -5 : 20}
-                                        textAnchor="middle"
-                                        fontSize="14"
-                                        fontWeight="bold"
-                                        fill={seg.textCol || '#000'}
-                                        style={{ fontFamily: 'Arial, user-select: none' }}
-                                    >
-                                        {seg.name}
-                                    </text>
+                                    {/* Text Removed as requested */}
                                 </g>
                             </g>
                         );
                     })}
                 </svg>
-
-                {/* CENTER CAP */}
-                <div style={{
-                    position: 'absolute',
-                    top: '50%', left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: '40px', height: '40px',
-                    backgroundColor: '#374151',
-                    borderRadius: '50%',
-                    border: '3px solid #FFF',
-                    zIndex: 20
-                }}></div>
             </div>
+
+            {/* 3. CENTER CAP */}
+            <div className="absolute top-1/2 left-1/2" style={{ transform: 'translate(-50%, -50%)', width: '50px', height: '50px', borderRadius: '50%', background: 'linear-gradient(to bottom right, #FCD34D, #F59E0B)', border: '4px solid #FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20, boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>
+                <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#B45309' }}>TÀI</span>
+            </div>
+
+            {/* 4. POINTER (Floating Top) */}
+            <div className="absolute left-1/2" style={{ top: '-18px', transform: 'translateX(-50%)', zIndex: 30, filter: 'drop-shadow(0 4px 4px rgba(0,0,0,0.4))' }}>
+                <svg width="40" height="50" viewBox="0 0 40 50" fill="none">
+                    <path d="M20 50L5 15C5 15 0 5 10 0H30C40 0 35 15 35 15L20 50Z" fill="#DC2626" stroke="#fff" strokeWidth="3" />
+                    <circle cx="20" cy="12" r="6" fill="#FCD34D" />
+                </svg>
+            </div>
+
+            <style jsx>{`
+                @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+            `}</style>
         </div>
     );
 }
