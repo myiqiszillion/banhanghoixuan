@@ -120,15 +120,40 @@ export default function MiniGameModal({ isOpen, onClose }) {
                                     const angle = i * 22.5 * Math.PI / 180;
                                     const x = 127 + 127 * Math.sin(angle);
                                     const y = 127 - 127 * Math.cos(angle);
-                                    return <div key={i} style={{ position: 'absolute', left: x - 5, top: y - 5, width: '10px', height: '10px', borderRadius: '50%', background: spinning ? (i % 2 === (Math.floor(Date.now() / 200) % 2) ? '#fff' : '#fbbf24') : '#fff', boxShadow: '0 0 8px rgba(255,255,255,0.8)' }} />;
+
+                                    // CSS Animation Logic
+                                    const isEven = i % 2 === 0;
+                                    const animationName = spinning ? 'ledBlink' : 'none';
+                                    const animationDuration = '0.6s';
+                                    const animationIterationCount = 'infinite';
+                                    const animationDelay = isEven ? '0s' : '0.3s'; // Alternate blinking
+
+                                    return <div key={i} style={{
+                                        position: 'absolute',
+                                        left: x - 5, top: y - 5,
+                                        width: '10px', height: '10px',
+                                        borderRadius: '50%',
+                                        background: '#fff',
+                                        boxShadow: '0 0 8px rgba(255,255,255,0.8)',
+                                        animation: `${animationName} ${animationDuration} ${animationIterationCount} ${animationDelay}`
+                                    }} />;
                                 })}
+
+                                {/* Internal Style for Keyframes */}
+                                <style jsx>{`
+                                    @keyframes ledBlink {
+                                        0%, 100% { background: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.8); transform: scale(1); }
+                                        50% { background: #fbbf24; box-shadow: 0 0 2px rgba(251,191,36,0.5); transform: scale(0.8); }
+                                    }
+                                `}</style>
 
                                 {/* Inner wheel */}
                                 <div style={{
                                     width: '100%', height: '100%', borderRadius: '50%', position: 'relative', overflow: 'hidden',
                                     background: `conic-gradient(from 0deg, ${conicGradient})`,
                                     transform: `rotate(${deg}deg)`,
-                                    transition: spinning ? 'transform 4s cubic-bezier(0.17, 0.67, 0.05, 0.99)' : 'none',
+                                    transition: spinning ? 'transform 4s cubic-bezier(0.25, 0.1, 0.25, 1)' : 'none', // Smoother bezier
+                                    willChange: 'transform', // Hardware acceleration hint
                                     boxShadow: 'inset 0 0 30px rgba(0,0,0,0.4)'
                                 }}>
                                     {/* Segment dividers */}
@@ -144,7 +169,7 @@ export default function MiniGameModal({ isOpen, onClose }) {
                                         const x = r * Math.cos(rad);
                                         const y = r * Math.sin(rad);
                                         return (
-                                            <div key={i} style={{ position: 'absolute', left: '50%', top: '50%', transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`, fontSize: '2rem', filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.5))' }}>{s.emoji}</div>
+                                            <div key={i} style={{ position: 'absolute', left: '50%', top: '50%', transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) rotate(${angle + 90}deg)`, fontSize: '2rem', filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.5))' }}>{s.emoji}</div>
                                         );
                                     })}
 

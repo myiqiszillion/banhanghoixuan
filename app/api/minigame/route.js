@@ -81,7 +81,8 @@ export async function POST(request) {
         const newUsedTickets = gameState.usedTickets + 1;
 
         await db.updateGameState(phone, {
-            usedTickets: newUsedTickets
+            usedTickets: newUsedTickets,
+            bonusTickets: gameState.bonusTickets || 0 // CRITICAL: Preserve bonus tickets
         });
 
         return NextResponse.json({
