@@ -4,14 +4,14 @@ import { useEffect, useState, useCallback } from 'react';
 import LuckyWheel from './LuckyWheel';
 
 const SEGMENTS = [
-    { emoji: '🍀', name: 'May mắn lần sau', color: '#4B5563', isLose: true }, // Gray
-    { emoji: '🍡', name: '+1 Xiên', color: '#EA580C', isLose: false },       // Orange
-    { emoji: '🍀', name: 'May mắn lần sau', color: '#7E22CE', isLose: true }, // Purple
-    { emoji: '💰', name: '10K', color: '#CA8A04', isLose: false },            // Yellow
-    { emoji: '🍀', name: 'May mắn lần sau', color: '#059669', isLose: true }, // Green
-    { emoji: '🥤', name: '1 Ly nước', color: '#2563EB', isLose: false },      // Blue
-    { emoji: '🍀', name: 'May mắn lần sau', color: '#DB2777', isLose: true }, // Pink
-    { emoji: '🍡', name: '+1 Xiên', color: '#DC2626', isLose: false },       // Red
+    { emoji: '🧧', name: 'Chúc may mắn', color: '#FFF7ED', textCol: '#C2410C', isLose: true }, // Cream + Orange Text (Lose)
+    { emoji: '🍡', name: 'Tặng 1 Xiên', color: '#DC2626', textCol: '#FEF3C7', isLose: false }, // Red + Gold Text (Win)
+    { emoji: '🧧', name: 'Chúc may mắn', color: '#FFF7ED', textCol: '#C2410C', isLose: true },
+    { emoji: '💰', name: 'Tặng 10K', color: '#F59E0B', textCol: '#78350F', isLose: false },    // Gold + Brown Text (Win)
+    { emoji: '🧧', name: 'Chúc may mắn', color: '#FFF7ED', textCol: '#C2410C', isLose: true },
+    { emoji: '🥤', name: 'Tặng 1 Ly', color: '#2563EB', textCol: '#FFFFFF', isLose: false },   // Blue + White (Win)
+    { emoji: '🧧', name: 'Chúc may mắn', color: '#FFF7ED', textCol: '#C2410C', isLose: true },
+    { emoji: '🍡', name: 'Tặng 1 Xiên', color: '#DC2626', textCol: '#FEF3C7', isLose: false },
 ];
 
 export default function MiniGameModal({ isOpen, onClose }) {
@@ -165,9 +165,9 @@ export default function MiniGameModal({ isOpen, onClose }) {
                                     <span style={{ fontSize: '1.3rem' }}>🍡</span>
                                     <span style={{ fontSize: '0.8rem', color: '#fdba74' }}>+1 Xiên miễn phí</span>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(75,85,99,0.15)', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid rgba(75,85,99,0.3)' }}>
-                                    <span style={{ fontSize: '1.3rem' }}>🍀</span>
-                                    <span style={{ fontSize: '0.8rem', color: '#d1d5db' }}>May mắn lần sau</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(185,28,28,0.2)', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid rgba(185,28,28,0.4)' }}>
+                                    <span style={{ fontSize: '1.3rem' }}>🧧</span>
+                                    <span style={{ fontSize: '0.8rem', color: '#FCA5A5' }}>Chúc may mắn</span>
                                 </div>
                             </div>
                             <p style={{ textAlign: 'center', fontSize: '0.7rem', color: '#6b7280', marginTop: '0.8rem', fontStyle: 'italic' }}>⚡ Mua 3 phần = 1 lượt • 100% có quà!</p>
