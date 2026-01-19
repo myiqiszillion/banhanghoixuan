@@ -2,13 +2,29 @@
 
 import { useEffect, useState, useCallback } from 'react';
 
-// 4 prizes for lucky wheel
-const PRIZES = [
-    { id: 1, label: 'Chúc bạn may mắn lần sau', emoji: '🍀', color: '#666', isLose: true },
-    { id: 2, label: '1 ly nước', emoji: '🥤', color: '#00bcd4', isLose: false },
-    { id: 3, label: '+1 xiên', emoji: '🍡', color: '#ff6b35', isLose: false },
-    { id: 4, label: '10K', emoji: '💰', color: '#ffd700', isLose: false },
+// 8 segments for a proper lucky wheel - alternating colors, smart distribution
+const WHEEL_SEGMENTS = [
+    { id: 0, label: 'May mắn', emoji: '🍀', color: '#6B7280', isLose: true },
+    { id: 1, label: '+1 Xiên', emoji: '🍡', color: '#F97316', isLose: false },
+    { id: 2, label: 'May mắn', emoji: '🍀', color: '#8B5CF6', isLose: true },
+    { id: 3, label: '10K', emoji: '💰', color: '#FBBF24', isLose: false },
+    { id: 4, label: 'May mắn', emoji: '🍀', color: '#10B981', isLose: true },
+    { id: 5, label: '1 Ly nước', emoji: '🥤', color: '#3B82F6', isLose: false },
+    { id: 6, label: 'May mắn', emoji: '🍀', color: '#EC4899', isLose: true },
+    { id: 7, label: '+1 Xiên', emoji: '🍡', color: '#EF4444', isLose: false },
 ];
+
+// Weight distribution (higher = more likely)
+const PRIZE_WEIGHTS = {
+    0: 20, // May mắn
+    1: 12, // +1 Xiên
+    2: 20, // May mắn
+    3: 6,  // 10K (rare)
+    4: 20, // May mắn
+    5: 10, // 1 Ly nước
+    6: 20, // May mắn
+    7: 12, // +1 Xiên
+};
 
 export default function MiniGameModal({ isOpen, onClose }) {
     const [phone, setPhone] = useState('');
@@ -16,18 +32,15 @@ export default function MiniGameModal({ isOpen, onClose }) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
-    // Game state from server
     const [availableTickets, setAvailableTickets] = useState(0);
     const [usedTickets, setUsedTickets] = useState(0);
 
-    // UI state
     const [isSpinning, setIsSpinning] = useState(false);
     const [rotation, setRotation] = useState(0);
     const [currentPrize, setCurrentPrize] = useState(null);
     const [showResult, setShowResult] = useState(false);
     const [prizeHistory, setPrizeHistory] = useState([]);
 
-    // Load game state from server
     const loadGameState = useCallback(async (phoneNum) => {
         try {
             setIsLoading(true);
@@ -41,7 +54,6 @@ export default function MiniGameModal({ isOpen, onClose }) {
 
             setUsedTickets(data.usedTickets || 0);
             setAvailableTickets(data.availableTickets || 0);
-
             return true;
         } catch (e) {
             setError('Không thể kết nối server');
@@ -51,7 +63,6 @@ export default function MiniGameModal({ isOpen, onClose }) {
         }
     }, []);
 
-    // Verify phone and load game
     const handleVerify = async (e) => {
         e.preventDefault();
         setError('');
@@ -67,7 +78,18 @@ export default function MiniGameModal({ isOpen, onClose }) {
         }
     };
 
-    // Spin the wheel
+    // Weighted random selection for 8 segments
+    const selectPrizeIndex = () => {
+        const totalWeight = Object.values(PRIZE_WEIGHTS).reduce((a, b) => a + b, 0);
+        let random = Math.random() * totalWeight;
+
+        for (let i = 0; i < WHEEL_SEGMENTS.length; i++) {
+            random -= PRIZE_WEIGHTS[i];
+            if (random <= 0) return i;
+        }
+        return 0;
+    };
+
     const spinWheel = async () => {
         if (availableTickets <= 0 || isSpinning) return;
 
@@ -90,19 +112,20 @@ export default function MiniGameModal({ isOpen, onClose }) {
                 return;
             }
 
-            // Calculate prize (weighted random)
-            const prizeIndex = data.prizeIndex !== undefined ? data.prizeIndex : Math.floor(Math.random() * PRIZES.length);
-            const prize = PRIZES[prizeIndex];
+            // Use server prize index or calculate locally
+            const prizeIndex = data.prizeIndex !== undefined
+                ? data.prizeIndex % WHEEL_SEGMENTS.length
+                : selectPrizeIndex();
+            const prize = WHEEL_SEGMENTS[prizeIndex];
 
-            // Calculate rotation (at least 5 full spins + land on prize)
-            const segmentAngle = 360 / PRIZES.length;
+            // Calculate rotation
+            const segmentAngle = 360 / WHEEL_SEGMENTS.length;
             const prizeAngle = prizeIndex * segmentAngle + segmentAngle / 2;
-            const spins = 5 + Math.random() * 3; // 5-8 full rotations
-            const targetRotation = rotation + (360 * spins) + (360 - prizeAngle);
+            const spins = 5 + Math.random() * 3;
+            const targetRotation = rotation + (360 * spins) + (360 - prizeAngle) + 90;
 
             setRotation(targetRotation);
 
-            // Show result after spin completes
             setTimeout(() => {
                 setCurrentPrize(prize);
                 setShowResult(true);
@@ -110,12 +133,11 @@ export default function MiniGameModal({ isOpen, onClose }) {
                 setUsedTickets(data.usedTickets);
                 setAvailableTickets(data.availableTickets);
 
-                // Add to history
                 setPrizeHistory(prev => [{
                     prize: prize,
                     time: new Date().toLocaleTimeString('vi-VN')
                 }, ...prev].slice(0, 5));
-            }, 4000);
+            }, 4500);
 
         } catch (e) {
             setError('Lỗi kết nối server');
@@ -123,7 +145,6 @@ export default function MiniGameModal({ isOpen, onClose }) {
         }
     };
 
-    // Reset form when modal closes
     useEffect(() => {
         if (!isOpen) {
             setPhone('');
@@ -136,46 +157,44 @@ export default function MiniGameModal({ isOpen, onClose }) {
 
     if (!isOpen) return null;
 
+    const segmentAngle = 360 / WHEEL_SEGMENTS.length;
+
     return (
         <div className="modal-overlay active">
-            <div className="modal-content minigame-modal" style={{ maxWidth: '500px' }}>
+            <div className="modal-content minigame-modal" style={{ maxWidth: '450px', padding: '1.5rem' }}>
                 <button className="modal-close" onClick={onClose}>&times;</button>
 
                 {/* Header */}
-                <div className="modal-header" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+                <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
                     <h2 style={{
-                        fontSize: '1.8rem',
+                        fontSize: '1.6rem',
                         fontWeight: '900',
-                        background: 'linear-gradient(135deg, #ff4444 0%, #ffcc00 100%)',
+                        background: 'linear-gradient(135deg, #ff6b35 0%, #ffd700 50%, #ff6b35 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
-                        marginBottom: '0.5rem'
+                        marginBottom: '0.3rem'
                     }}>
                         🎡 VÒNG QUAY MAY MẮN
                     </h2>
-                    <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>
-                        Quay để nhận phần thưởng hấp dẫn!
+                    <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem' }}>
+                        Quay để nhận quà hấp dẫn!
                     </p>
                 </div>
 
-                {/* Phone Verification */}
                 {!isVerified ? (
                     <form onSubmit={handleVerify} style={{ textAlign: 'center' }}>
                         <div style={{
                             background: 'rgba(255,255,255,0.05)',
-                            padding: '2rem',
+                            padding: '1.5rem',
                             borderRadius: '16px',
                             marginBottom: '1rem'
                         }}>
-                            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔐</div>
-                            <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>XÁC THỰC ĐỂ CHƠI</h3>
-                            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-                                Nhập số điện thoại đã dùng để đặt hàng
-                            </p>
+                            <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🔐</div>
+                            <h3 style={{ color: '#fff', marginBottom: '0.5rem', fontSize: '1.1rem' }}>XÁC THỰC ĐỂ CHƠI</h3>
                             <p style={{
                                 color: '#ffcc00',
                                 fontSize: '0.8rem',
-                                marginBottom: '1.5rem',
+                                marginBottom: '1rem',
                                 padding: '0.5rem',
                                 background: 'rgba(255,204,0,0.1)',
                                 borderRadius: '8px'
@@ -190,20 +209,20 @@ export default function MiniGameModal({ isOpen, onClose }) {
                                 placeholder="Số điện thoại (10 số)"
                                 style={{
                                     width: '100%',
-                                    padding: '1rem',
-                                    fontSize: '1.2rem',
+                                    padding: '0.9rem',
+                                    fontSize: '1.1rem',
                                     textAlign: 'center',
                                     background: 'rgba(255,255,255,0.1)',
                                     border: '2px solid rgba(255,255,255,0.2)',
                                     borderRadius: '12px',
                                     color: '#fff',
-                                    marginBottom: '1rem',
+                                    marginBottom: '0.75rem',
                                     fontFamily: 'monospace'
                                 }}
                             />
 
                             {error && (
-                                <p style={{ color: '#ff4444', marginBottom: '1rem', fontSize: '0.9rem' }}>
+                                <p style={{ color: '#ff4444', marginBottom: '0.75rem', fontSize: '0.85rem' }}>
                                     ❌ {error}
                                 </p>
                             )}
@@ -213,7 +232,7 @@ export default function MiniGameModal({ isOpen, onClose }) {
                                 disabled={isLoading || phone.length !== 10}
                                 style={{
                                     width: '100%',
-                                    padding: '1rem',
+                                    padding: '0.9rem',
                                     background: phone.length === 10
                                         ? 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)'
                                         : 'rgba(255,255,255,0.1)',
@@ -221,7 +240,7 @@ export default function MiniGameModal({ isOpen, onClose }) {
                                     borderRadius: '12px',
                                     color: '#fff',
                                     fontWeight: '700',
-                                    fontSize: '1.1rem',
+                                    fontSize: '1rem',
                                     cursor: phone.length === 10 ? 'pointer' : 'not-allowed'
                                 }}
                             >
@@ -231,197 +250,227 @@ export default function MiniGameModal({ isOpen, onClose }) {
                     </form>
                 ) : (
                     <>
-                        {/* Verified Player Info */}
+                        {/* Player Info */}
                         <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
                             background: 'rgba(0,210,106,0.1)',
                             border: '1px solid #00d26a',
                             borderRadius: '8px',
-                            padding: '0.5rem 1rem',
-                            marginBottom: '1rem',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center'
+                            padding: '0.4rem 0.8rem',
+                            marginBottom: '1rem'
                         }}>
-                            <span style={{ color: '#00d26a', fontSize: '0.85rem' }}>
-                                ✅ SĐT: {phone}
-                            </span>
-                            <button
-                                onClick={() => setIsVerified(false)}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: 'rgba(255,255,255,0.5)',
-                                    cursor: 'pointer',
-                                    fontSize: '0.8rem'
-                                }}
-                            >
-                                Đổi SĐT
-                            </button>
+                            <span style={{ color: '#00d26a', fontSize: '0.8rem' }}>✅ {phone}</span>
+                            <div style={{
+                                background: '#ffcc00',
+                                color: '#000',
+                                padding: '0.2rem 0.6rem',
+                                borderRadius: '50px',
+                                fontWeight: '800',
+                                fontSize: '0.85rem'
+                            }}>
+                                🎟️ {availableTickets} lượt
+                            </div>
                         </div>
 
-                        {/* Tickets Display */}
-                        <div style={{
-                            background: 'rgba(255,204,0,0.1)',
-                            border: '2px solid #ffcc00',
-                            borderRadius: '12px',
-                            padding: '1rem',
-                            textAlign: 'center',
-                            marginBottom: '1.5rem'
-                        }}>
-                            <div style={{ fontSize: '2.5rem', fontWeight: '900', color: '#ffcc00' }}>{availableTickets}</div>
-                            <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)' }}>Lượt quay còn lại</div>
-                        </div>
-
-                        {/* Error Display */}
                         {error && (
                             <div style={{
                                 background: 'rgba(255,68,68,0.1)',
                                 border: '1px solid #ff4444',
                                 borderRadius: '8px',
-                                padding: '0.75rem',
-                                marginBottom: '1rem',
+                                padding: '0.5rem',
+                                marginBottom: '0.75rem',
                                 textAlign: 'center',
                                 color: '#ff4444',
-                                fontSize: '0.9rem'
+                                fontSize: '0.85rem'
                             }}>
                                 ❌ {error}
                             </div>
                         )}
 
-                        {/* Lucky Wheel */}
+                        {/* Lucky Wheel Container */}
                         <div style={{
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
-                            marginBottom: '1.5rem',
+                            marginBottom: '1rem',
                             position: 'relative'
                         }}>
                             {/* Pointer */}
                             <div style={{
                                 position: 'absolute',
-                                top: '-10px',
+                                top: '-5px',
                                 left: '50%',
                                 transform: 'translateX(-50%)',
                                 zIndex: 10,
-                                fontSize: '2rem'
+                                fontSize: '1.8rem',
+                                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))'
                             }}>
-                                ▼
+                                🔻
                             </div>
 
-                            {/* Wheel */}
+                            {/* Wheel Outer Ring */}
                             <div style={{
-                                width: '280px',
-                                height: '280px',
+                                width: '290px',
+                                height: '290px',
                                 borderRadius: '50%',
-                                border: '6px solid #ffd700',
-                                position: 'relative',
-                                overflow: 'hidden',
-                                boxShadow: '0 0 30px rgba(255,215,0,0.4)',
-                                transform: `rotate(${rotation}deg)`,
-                                transition: isSpinning ? 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none'
+                                padding: '8px',
+                                background: 'linear-gradient(135deg, #ffd700 0%, #ff8c00 50%, #ffd700 100%)',
+                                boxShadow: '0 0 40px rgba(255,215,0,0.5), inset 0 0 20px rgba(0,0,0,0.3)',
+                                position: 'relative'
                             }}>
-                                {PRIZES.map((prize, index) => {
-                                    const segmentAngle = 360 / PRIZES.length;
-                                    const startAngle = index * segmentAngle;
+                                {/* Wheel */}
+                                <div style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    borderRadius: '50%',
+                                    position: 'relative',
+                                    overflow: 'hidden',
+                                    transform: `rotate(${rotation}deg)`,
+                                    transition: isSpinning ? 'transform 4.5s cubic-bezier(0.17, 0.67, 0.05, 0.99)' : 'none',
+                                    background: '#1a1a2e'
+                                }}>
+                                    {/* Segments using conic-gradient */}
+                                    <div style={{
+                                        position: 'absolute',
+                                        inset: 0,
+                                        borderRadius: '50%',
+                                        background: `conic-gradient(
+                                            ${WHEEL_SEGMENTS.map((seg, i) =>
+                                            `${seg.color} ${i * segmentAngle}deg ${(i + 1) * segmentAngle}deg`
+                                        ).join(', ')}
+                                        )`
+                                    }} />
 
-                                    return (
+                                    {/* Segment Dividers */}
+                                    {WHEEL_SEGMENTS.map((_, i) => (
                                         <div
-                                            key={prize.id}
+                                            key={`divider-${i}`}
                                             style={{
                                                 position: 'absolute',
-                                                width: '50%',
-                                                height: '50%',
                                                 left: '50%',
                                                 top: '50%',
-                                                transformOrigin: '0 0',
-                                                transform: `rotate(${startAngle}deg) skewY(${90 - segmentAngle}deg)`,
-                                                background: prize.color,
-                                                border: '1px solid rgba(255,255,255,0.3)'
+                                                width: '50%',
+                                                height: '2px',
+                                                background: 'rgba(255,255,255,0.3)',
+                                                transformOrigin: '0 50%',
+                                                transform: `rotate(${i * segmentAngle}deg)`
                                             }}
                                         />
-                                    );
-                                })}
+                                    ))}
 
-                                {/* Prize Labels */}
-                                {PRIZES.map((prize, index) => {
-                                    const segmentAngle = 360 / PRIZES.length;
-                                    const labelAngle = index * segmentAngle + segmentAngle / 2;
+                                    {/* Prize Labels */}
+                                    {WHEEL_SEGMENTS.map((segment, i) => {
+                                        const angle = i * segmentAngle + segmentAngle / 2;
+                                        return (
+                                            <div
+                                                key={`label-${segment.id}`}
+                                                style={{
+                                                    position: 'absolute',
+                                                    left: '50%',
+                                                    top: '50%',
+                                                    transform: `rotate(${angle}deg) translateX(55px)`,
+                                                    transformOrigin: '0 0',
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    alignItems: 'center',
+                                                    width: '60px',
+                                                    marginLeft: '-30px'
+                                                }}
+                                            >
+                                                <span style={{
+                                                    fontSize: '1.4rem',
+                                                    transform: `rotate(${-angle - rotation}deg)`,
+                                                    transition: 'none'
+                                                }}>
+                                                    {segment.emoji}
+                                                </span>
+                                                <span style={{
+                                                    fontSize: '0.55rem',
+                                                    fontWeight: 'bold',
+                                                    color: '#fff',
+                                                    textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+                                                    textAlign: 'center',
+                                                    lineHeight: 1.1,
+                                                    marginTop: '2px',
+                                                    transform: `rotate(${-angle - rotation}deg)`,
+                                                    transition: 'none'
+                                                }}>
+                                                    {segment.label}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
 
-                                    return (
-                                        <div
-                                            key={`label-${prize.id}`}
-                                            style={{
-                                                position: 'absolute',
-                                                left: '50%',
-                                                top: '50%',
-                                                transform: `rotate(${labelAngle}deg) translateY(-90px)`,
-                                                transformOrigin: '0 0',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                alignItems: 'center',
-                                                width: '80px',
-                                                marginLeft: '-40px'
-                                            }}
-                                        >
-                                            <span style={{ fontSize: '1.8rem' }}>{prize.emoji}</span>
-                                            <span style={{
-                                                fontSize: '0.6rem',
-                                                fontWeight: 'bold',
-                                                color: '#fff',
-                                                textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
-                                                textAlign: 'center',
-                                                lineHeight: 1.2
-                                            }}>
-                                                {prize.label}
-                                            </span>
-                                        </div>
-                                    );
-                                })}
-
-                                {/* Center */}
-                                <div style={{
-                                    position: 'absolute',
-                                    left: '50%',
-                                    top: '50%',
-                                    transform: 'translate(-50%, -50%)',
-                                    width: '60px',
-                                    height: '60px',
-                                    borderRadius: '50%',
-                                    background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
-                                    border: '4px solid #ffd700',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: '1.5rem',
-                                    boxShadow: '0 0 20px rgba(0,0,0,0.5)'
-                                }}>
-                                    🎡
+                                    {/* Center Button */}
+                                    <div style={{
+                                        position: 'absolute',
+                                        left: '50%',
+                                        top: '50%',
+                                        transform: 'translate(-50%, -50%)',
+                                        width: '50px',
+                                        height: '50px',
+                                        borderRadius: '50%',
+                                        background: 'linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%)',
+                                        border: '4px solid #ffd700',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '1.3rem',
+                                        boxShadow: '0 0 15px rgba(0,0,0,0.5)',
+                                        zIndex: 5
+                                    }}>
+                                        🎡
+                                    </div>
                                 </div>
                             </div>
+
+                            {/* Light Dots */}
+                            {[...Array(12)].map((_, i) => (
+                                <div
+                                    key={`light-${i}`}
+                                    style={{
+                                        position: 'absolute',
+                                        width: '10px',
+                                        height: '10px',
+                                        borderRadius: '50%',
+                                        background: isSpinning
+                                            ? (i % 2 === 0 ? '#ffd700' : '#fff')
+                                            : '#ffd700',
+                                        left: '50%',
+                                        top: '50%',
+                                        transform: `rotate(${i * 30}deg) translateY(-152px)`,
+                                        transformOrigin: '0 0',
+                                        boxShadow: '0 0 6px rgba(255,215,0,0.8)',
+                                        animation: isSpinning ? `blink 0.3s infinite ${i * 0.05}s` : 'none'
+                                    }}
+                                />
+                            ))}
                         </div>
 
                         {/* Result Display */}
                         {showResult && currentPrize && (
                             <div style={{
                                 background: currentPrize.isLose
-                                    ? 'rgba(100,100,100,0.2)'
-                                    : 'rgba(255,215,0,0.15)',
+                                    ? 'rgba(100,100,100,0.15)'
+                                    : 'linear-gradient(135deg, rgba(255,215,0,0.15) 0%, rgba(255,107,53,0.15) 100%)',
                                 border: `2px solid ${currentPrize.isLose ? '#666' : '#ffd700'}`,
                                 borderRadius: '12px',
-                                padding: '1rem',
-                                marginBottom: '1rem',
+                                padding: '0.75rem',
+                                marginBottom: '0.75rem',
                                 textAlign: 'center'
                             }}>
-                                <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>{currentPrize.emoji}</div>
+                                <div style={{ fontSize: '2rem', marginBottom: '0.3rem' }}>{currentPrize.emoji}</div>
                                 <div style={{
-                                    fontSize: '1.2rem',
+                                    fontSize: '1rem',
                                     fontWeight: 'bold',
                                     color: currentPrize.isLose ? '#aaa' : '#ffd700'
                                 }}>
-                                    {currentPrize.isLose ? currentPrize.label : `🎉 Bạn nhận được: ${currentPrize.label}`}
+                                    {currentPrize.isLose ? 'Chúc bạn may mắn lần sau!' : `🎉 Bạn nhận được: ${currentPrize.label}`}
                                 </div>
                                 {!currentPrize.isLose && (
-                                    <p style={{ color: '#00d26a', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+                                    <p style={{ color: '#00d26a', fontSize: '0.75rem', marginTop: '0.3rem' }}>
                                         📸 Chụp màn hình để nhận quà tại gian hàng 10.11!
                                     </p>
                                 )}
@@ -434,7 +483,7 @@ export default function MiniGameModal({ isOpen, onClose }) {
                             disabled={availableTickets <= 0 || isSpinning}
                             style={{
                                 width: '100%',
-                                padding: '1rem',
+                                padding: '0.9rem',
                                 background: availableTickets > 0 && !isSpinning
                                     ? 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)'
                                     : 'rgba(255,255,255,0.1)',
@@ -442,68 +491,61 @@ export default function MiniGameModal({ isOpen, onClose }) {
                                 borderRadius: '12px',
                                 color: '#fff',
                                 fontWeight: '700',
-                                fontSize: '1.1rem',
+                                fontSize: '1rem',
                                 cursor: availableTickets > 0 && !isSpinning ? 'pointer' : 'not-allowed',
-                                marginBottom: '1rem'
+                                marginBottom: '0.75rem',
+                                boxShadow: availableTickets > 0 && !isSpinning
+                                    ? '0 4px 15px rgba(255,107,53,0.4)'
+                                    : 'none'
                             }}
                         >
-                            {isSpinning ? (
-                                <>⏳ Đang quay...</>
-                            ) : availableTickets > 0 ? (
-                                <>🎡 QUAY NGAY (-1 lượt)</>
-                            ) : (
-                                <>❌ Hết lượt - Mua thêm Tuyết Sơn!</>
-                            )}
+                            {isSpinning ? '⏳ Đang quay...' : availableTickets > 0 ? '🎡 QUAY NGAY' : '❌ Hết lượt'}
                         </button>
 
                         {/* Prize History */}
                         {prizeHistory.length > 0 && (
                             <div style={{
-                                background: 'rgba(255,255,255,0.05)',
-                                padding: '0.75rem',
-                                borderRadius: '10px',
-                                marginBottom: '1rem'
+                                background: 'rgba(255,255,255,0.03)',
+                                padding: '0.5rem 0.75rem',
+                                borderRadius: '8px',
+                                marginBottom: '0.5rem'
                             }}>
-                                <h4 style={{ fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#fff' }}>
-                                    📝 Lịch sử quay:
-                                </h4>
-                                <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>
+                                <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.3rem' }}>
+                                    Lịch sử:
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                                     {prizeHistory.map((item, i) => (
-                                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0' }}>
-                                            <span>{item.prize.emoji} {item.prize.label}</span>
-                                            <span style={{ color: 'rgba(255,255,255,0.5)' }}>{item.time}</span>
-                                        </div>
+                                        <span key={i} style={{
+                                            background: item.prize.isLose ? 'rgba(100,100,100,0.3)' : 'rgba(255,215,0,0.2)',
+                                            padding: '0.2rem 0.5rem',
+                                            borderRadius: '50px',
+                                            fontSize: '0.7rem',
+                                            color: item.prize.isLose ? '#999' : '#ffd700'
+                                        }}>
+                                            {item.prize.emoji} {item.prize.label}
+                                        </span>
                                     ))}
                                 </div>
                             </div>
                         )}
 
-                        {/* Rules */}
+                        {/* Mini Rules */}
                         <div style={{
-                            background: 'rgba(255,255,255,0.05)',
-                            padding: '1rem',
-                            borderRadius: '10px'
+                            fontSize: '0.7rem',
+                            color: 'rgba(255,255,255,0.4)',
+                            textAlign: 'center'
                         }}>
-                            <h4 style={{ fontSize: '0.9rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#ff4444' }}>
-                                📝 THỂ LỆ:
-                            </h4>
-                            <ul style={{
-                                paddingLeft: '1.25rem',
-                                fontSize: '0.8rem',
-                                color: 'rgba(255,255,255,0.7)',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '0.25rem',
-                                margin: 0
-                            }}>
-                                <li>Mỗi <strong>3 phần Tuyết Sơn</strong> đã thanh toán = <strong>1 lượt quay</strong></li>
-                                <li>Phần thưởng: <strong>10K</strong> | <strong>+1 xiên</strong> | <strong>1 ly nước</strong></li>
-                                <li>Chụp màn hình kết quả để nhận quà!</li>
-                                <li style={{ color: '#ffcc00' }}>💡 Dùng đúng SĐT khi mua hàng để nhận lượt!</li>
-                            </ul>
+                            💡 Mua 3 phần = 1 lượt quay • 100% có quà!
                         </div>
                     </>
                 )}
+
+                <style jsx>{`
+                    @keyframes blink {
+                        0%, 100% { opacity: 1; }
+                        50% { opacity: 0.3; }
+                    }
+                `}</style>
             </div>
         </div>
     );
