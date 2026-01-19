@@ -107,7 +107,6 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
             const finalRot = targetRotaRef.current;
             rotationRef.current = finalRot;
             if (wheelRef.current) wheelRef.current.style.transform = `rotate(${finalRot}deg)`;
-
             playWinSound();
             fireConfetti();
             onStop();
@@ -126,15 +125,17 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
     return (
         <div style={{ position: 'relative', width: '320px', height: '320px', margin: '0 auto', userSelect: 'none' }}>
 
-            {/* 1. TRANSPARENT BACKGROUND - No Outer Ring */}
-
-            {/* 2. WHEEL */}
-            <div className="absolute inset-2 rounded-full overflow-hidden" style={{ border: '4px solid #F59E0B', background: '#FFFBE6', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
+            {/* SVG WHEEL - Main rotating part */}
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
                 <svg
                     ref={wheelRef}
                     viewBox={`0 0 ${WHEEL_SIZE} ${WHEEL_SIZE}`}
-                    style={{ width: '100%', height: '100%', willChange: 'transform' }}
+                    style={{ width: '100%', height: '100%', willChange: 'transform', overflow: 'visible' }}
                 >
+                    {/* Wheel Background Circle in SVG */}
+                    <circle cx={CENTER} cy={CENTER} r={RADIUS + 4} fill="#F59E0B" /> {/* Gold Border */}
+                    <circle cx={CENTER} cy={CENTER} r={RADIUS} fill="#FFFBE6" /> {/* Inner Background */}
+
                     {segments.map((seg, i) => {
                         const startA = i * SEGMENT_ANGLE;
                         const endA = (i + 1) * SEGMENT_ANGLE;
@@ -144,12 +145,10 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
                         const path = `M ${CENTER} ${CENTER} L ${start[0]} ${start[1]} A ${RADIUS} ${RADIUS} 0 ${largeArc} 1 ${end[0]} ${end[1]} Z`;
 
                         const midA = startA + SEGMENT_ANGLE / 2;
-                        const dist = RADIUS * 0.65; // Closer to center for Icons
+                        const dist = RADIUS * 0.65;
                         const tx = CENTER + dist * Math.cos(midA * Math.PI / 180);
                         const ty = CENTER + dist * Math.sin(midA * Math.PI / 180);
-
-                        // Rotate icon to match slice orientation
-                        let rot = midA + 90;
+                        const rot = midA + 90;
 
                         return (
                             <g key={i}>
@@ -163,7 +162,6 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
                                     >
                                         {seg.emoji}
                                     </text>
-                                    {/* Text Removed */}
                                 </g>
                             </g>
                         );
@@ -171,12 +169,28 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
                 </svg>
             </div>
 
-            {/* 3. CENTER CAP - No Text */}
-            <div className="absolute top-1/2 left-1/2" style={{ transform: 'translate(-50%, -50%)', width: '50px', height: '50px', borderRadius: '50%', background: 'linear-gradient(135deg, #FCD34D, #F59E0B)', border: '4px solid #fff', zIndex: 20, boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>
+            {/* CENTER CAP - Pure CSS Circle */}
+            <div style={{
+                position: 'absolute',
+                top: '50%', left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '50px', height: '50px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #FCD34D, #F59E0B)',
+                border: '4px solid #fff',
+                zIndex: 20,
+                boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
+            }}>
             </div>
 
-            {/* 4. POINTER (Standard Top) */}
-            <div className="absolute left-1/2" style={{ top: '-15px', transform: 'translateX(-50%)', zIndex: 30, filter: 'drop-shadow(0 4px 4px rgba(0,0,0,0.4))' }}>
+            {/* POINTER - Standard Top */}
+            <div style={{
+                position: 'absolute',
+                top: '-15px', left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 30,
+                filter: 'drop-shadow(0 4px 4px rgba(0,0,0,0.4))'
+            }}>
                 <svg width="46" height="54" viewBox="0 0 46 54" fill="none">
                     <path d="M23 54L6 16C6 16 0 6 11 0H35C46 0 40 6 40 16L23 54Z" fill="#DC2626" stroke="#fff" strokeWidth="3" />
                     <circle cx="23" cy="14" r="7" fill="#FCD34D" />
