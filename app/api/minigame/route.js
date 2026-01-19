@@ -3,51 +3,26 @@ import { db } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-// 11 unique cards
-const CARD_COLLECTION = [
-    { id: 1, emoji: '🔥', name: 'Hỏa Long' },
-    { id: 2, emoji: '❄️', name: 'Tuyết Sơn' },
-    { id: 3, emoji: '⭐', name: 'Ngôi Sao' },
-    { id: 4, emoji: '🎭', name: 'Lễ Hội' },
-    { id: 5, emoji: '🎪', name: 'Hội Xuân' },
-    { id: 6, emoji: '🎸', name: 'Âm Nhạc' },
-    { id: 7, emoji: '🎨', name: 'Nghệ Thuật' },
-    { id: 8, emoji: '🏆', name: 'Vô Địch' },
-    { id: 9, emoji: '💎', name: 'Kim Cương' },
-    { id: 10, emoji: '🌟', name: 'Siêu Sao' },
-    { id: 11, emoji: '👑', name: 'Vương Miện' },
+// 4 prizes for lucky wheel with weights (higher = more likely)
+const PRIZES = [
+    { id: 0, label: 'Chúc bạn may mắn lần sau', emoji: '🍀', weight: 40 }, // 40%
+    { id: 1, label: '1 ly nước', emoji: '🥤', weight: 30 }, // 30%
+    { id: 2, label: '+1 xiên', emoji: '🍡', weight: 20 }, // 20%
+    { id: 3, label: '10K', emoji: '💰', weight: 10 }, // 10%
 ];
 
-// Smart probability function - same as client but verified server-side
-function getDuplicateChance(cardCount) {
-    if (cardCount === 0) return 0;
-    if (cardCount === 1) return 0.20;
-    if (cardCount === 2) return 0.30;
-    if (cardCount === 3) return 0.45;
-    if (cardCount === 4) return 0.55;
-    if (cardCount === 5) return 0.70;
-    if (cardCount === 6) return 0.80;
-    if (cardCount === 7) return 0.88;
-    if (cardCount === 8) return 0.93;
-    if (cardCount === 9) return 0.97;
-    return 0.993; // Last card - legendary!
-}
+// Weighted random selection
+function selectPrize() {
+    const totalWeight = PRIZES.reduce((sum, p) => sum + p.weight, 0);
+    let random = Math.random() * totalWeight;
 
-function selectCard(collectedCardIds) {
-    const duplicateChance = getDuplicateChance(collectedCardIds.length);
-
-    if (collectedCardIds.length > 0 && collectedCardIds.length < 11 && Math.random() < duplicateChance) {
-        // Duplicate
-        const randomId = collectedCardIds[Math.floor(Math.random() * collectedCardIds.length)];
-        return CARD_COLLECTION.find(c => c.id === randomId);
-    } else {
-        // New card
-        const uncollected = CARD_COLLECTION.filter(c => !collectedCardIds.includes(c.id));
-        if (uncollected.length > 0) {
-            return uncollected[Math.floor(Math.random() * uncollected.length)];
+    for (let i = 0; i < PRIZES.length; i++) {
+        random -= PRIZES[i].weight;
+        if (random <= 0) {
+            return i;
         }
-        return CARD_COLLECTION[Math.floor(Math.random() * CARD_COLLECTION.length)];
     }
+    return 0; // Default to first prize
 }
 
 // GET: Get player's game state
@@ -65,11 +40,10 @@ export async function GET(request) {
 
         return NextResponse.json({
             phone,
-            collectedCards: gameState?.collectedCards || [],
+            collectedCards: gameState?.collectedCards || [], // Keep for backward compat
             usedTickets: gameState?.usedTickets || 0,
             totalTickets: ticketBalance,
-            availableTickets: ticketBalance - (gameState?.usedTickets || 0),
-            isComplete: (gameState?.collectedCards || []).length === 11
+            availableTickets: ticketBalance - (gameState?.usedTickets || 0)
         });
     } catch (error) {
         console.error('Game State Error:', error);
@@ -77,7 +51,7 @@ export async function GET(request) {
     }
 }
 
-// POST: Flip a card (server-validated)
+// POST: Spin the wheel (server-validated)
 export async function POST(request) {
     try {
         const body = await request.json();
@@ -95,48 +69,34 @@ export async function POST(request) {
         // Check if player has tickets
         if (availableTickets <= 0) {
             return NextResponse.json({
-                error: 'Không đủ vé! Mua thêm Tuyết Sơn để nhận vé.',
+                error: 'Không đủ lượt quay! Mua thêm Tuyết Sơn để nhận lượt.',
                 availableTickets: 0
             }, { status: 400 });
         }
 
-        // Check if already completed
-        if (gameState.collectedCards.length === 11) {
-            return NextResponse.json({
-                error: 'Bạn đã hoàn thành bộ sưu tập!',
-                isComplete: true
-            }, { status: 400 });
-        }
+        // Select prize (server-side weighted RNG)
+        const prizeIndex = selectPrize();
+        const prize = PRIZES[prizeIndex];
 
-        // Select card (server-side RNG)
-        const selectedCard = selectCard(gameState.collectedCards);
-        const isNewCard = !gameState.collectedCards.includes(selectedCard.id);
-
-        // Update game state
-        const newCollectedCards = isNewCard
-            ? [...gameState.collectedCards, selectedCard.id]
-            : gameState.collectedCards;
+        // Update game state (increment used tickets)
         const newUsedTickets = gameState.usedTickets + 1;
 
         await db.updateGameState(phone, {
-            collectedCards: newCollectedCards,
+            collectedCards: gameState.collectedCards, // Keep existing data
             usedTickets: newUsedTickets
         });
 
-        const isComplete = newCollectedCards.length === 11;
-
         return NextResponse.json({
             success: true,
-            card: selectedCard,
-            isNew: isNewCard,
-            collectedCards: newCollectedCards,
+            prizeIndex: prizeIndex,
+            prize: prize,
             usedTickets: newUsedTickets,
-            availableTickets: ticketBalance - newUsedTickets,
-            isComplete
+            availableTickets: ticketBalance - newUsedTickets
         });
 
     } catch (error) {
-        console.error('Flip Card Error:', error);
+        console.error('Spin Wheel Error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+

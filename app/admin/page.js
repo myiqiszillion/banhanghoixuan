@@ -371,6 +371,7 @@ export default function AdminPage() {
                                     <button className={`filter-btn ${filter === 'pending' ? 'active' : ''}`} onClick={() => setFilter('pending')}>Chờ thanh toán</button>
                                     <button className={`filter-btn ${filter === 'paid' ? 'active' : ''}`} onClick={() => setFilter('paid')}>Đã thanh toán</button>
                                     <button className={`filter-btn ${filter === 'delivered' ? 'active' : ''}`} onClick={() => setFilter('delivered')}>✅ Đã giao</button>
+                                    <button className={`filter-btn ${filter === 'undelivered' ? 'active' : ''}`} onClick={() => setFilter('undelivered')} style={{ background: filter === 'undelivered' ? 'rgba(255, 165, 0, 0.3)' : 'rgba(255, 165, 0, 0.1)', border: '1px solid #ffa500', color: '#ffa500' }}>📦 Chưa giao</button>
 
                                     <button
                                         className="filter-btn"
@@ -437,6 +438,12 @@ export default function AdminPage() {
                                             <div className="order-detail">
                                                 <span className="detail-label">🎁</span>
                                                 <span className="detail-value" style={{ color: '#ffcc00', fontWeight: 'bold' }}>+{order.freePortions} phần tặng</span>
+                                            </div>
+                                        )}
+                                        {order.note && (
+                                            <div className="order-detail" style={{ background: 'rgba(255,255,255,0.05)', padding: '0.5rem', borderRadius: '8px', marginTop: '0.5rem' }}>
+                                                <span className="detail-label">📝</span>
+                                                <span className="detail-value" style={{ color: '#ffa500', fontStyle: 'italic' }}>{order.note}</span>
                                             </div>
                                         )}
                                         <div className="order-detail" style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px dashed rgba(255,255,255,0.1)', justifyContent: 'space-between', width: '100%' }}>
