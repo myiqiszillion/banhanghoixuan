@@ -5,8 +5,9 @@ import confetti from 'canvas-confetti';
 
 const WHEEL_SIZE = 360;
 const CENTER = WHEEL_SIZE / 2;
-const RADIUS = WHEEL_SIZE * 0.44;
+const RADIUS = WHEEL_SIZE * 0.45;
 
+// Simple sound (Clicking sound)
 const playTickSound = () => {
     try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -15,14 +16,13 @@ const playTickSound = () => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(600, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.05);
-        gain.gain.setValueAtTime(0.1, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+        osc.frequency.setValueAtTime(800, ctx.currentTime);
+        gain.gain.setValueAtTime(0.05, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
-        osc.stop(ctx.currentTime + 0.05);
+        osc.stop(ctx.currentTime + 0.03);
     } catch (e) { }
 };
 
@@ -31,17 +31,16 @@ const playWinSound = () => {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (!AudioContext) return;
         const ctx = new AudioContext();
-        const now = ctx.currentTime;
-        [0, 0.2, 0.4, 0.6].forEach((delay, i) => {
+        [500, 600, 800].forEach((f, i) => {
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
-            osc.frequency.value = 600 + i * 200;
-            gain.gain.setValueAtTime(0.1, now + delay);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.3);
+            osc.frequency.value = f;
+            gain.gain.setValueAtTime(0.1, ctx.currentTime + i * 0.1);
+            gain.gain.linearRampToValueAtTime(0, ctx.currentTime + i * 0.1 + 0.2);
             osc.connect(gain);
             gain.connect(ctx.destination);
-            osc.start(now + delay);
-            osc.stop(now + delay + 0.3);
+            osc.start(ctx.currentTime + i * 0.1);
+            osc.stop(ctx.currentTime + i * 0.1 + 0.2);
         });
     } catch (e) { }
 };
@@ -65,12 +64,11 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
 
     const startSpin = () => {
         const current = rotationRef.current;
-        const spins = 360 * 6;
+        const spins = 360 * 5;
         const randomOffset = (Math.random() - 0.5) * (SEGMENT_ANGLE - 2);
 
         const sectorAngle = prizeIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
         const targetRotation = current + spins + (270 - sectorAngle - (current % 360)) + randomOffset;
-
         const finalTarget = targetRotation < current + 360 * 5 ? targetRotation + 360 : targetRotation;
 
         startTimeRef.current = null;
@@ -85,11 +83,11 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
     const animate = (time) => {
         if (!startTimeRef.current) startTimeRef.current = time;
         const elapsed = time - startTimeRef.current;
-        const duration = 5000;
+        const duration = 4000;
 
         if (elapsed < duration) {
             const t = elapsed / duration;
-            const ease = 1 - Math.pow(1 - t, 4);
+            const ease = 1 - Math.pow(1 - t, 3); // Cubic Ease Out
             const newRot = startRotaRef.current + (targetRotaRef.current - startRotaRef.current) * ease;
 
             rotationRef.current = newRot;
@@ -115,7 +113,7 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
     };
 
     const fireConfetti = () => {
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
     };
 
     const getCoord = (percent, r = RADIUS) => [
@@ -124,13 +122,34 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
     ];
 
     return (
-        <div style={{ position: 'relative', width: '300px', height: '300px', margin: '0 auto', userSelect: 'none' }}>
+        <div style={{ width: '100%', maxWidth: '340px', margin: '0 auto', position: 'relative', padding: '20px 0' }}>
 
-            {/* 1. SIMPLE OUTER RING (No lights, just border) */}
-            <div className="absolute inset-0 rounded-full border-[8px] border-yellow-500 bg-white shadow-xl"></div>
+            {/* POINTER (Top Center) - Outside Wheel Container to avoid clipping */}
+            <div style={{
+                position: 'absolute',
+                top: '0',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 50,
+                filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.3))'
+            }}>
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                    <path d="M20 40L5 5H35L20 40Z" fill="#FCD34D" stroke="#000" strokeWidth="2" />
+                </svg>
+            </div>
 
-            {/* 2. WHEEL */}
-            <div className="absolute top-2 left-2 right-2 bottom-2 rounded-full overflow-hidden">
+            {/* WHEEL CONTAINER */}
+            <div style={{
+                width: '300px',
+                height: '300px',
+                margin: '0 auto',
+                borderRadius: '50%',
+                border: '8px solid #374151',
+                background: '#FFF',
+                position: 'relative',
+                overflow: 'hidden',
+                boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
+            }}>
                 <svg
                     ref={wheelRef}
                     viewBox={`0 0 ${WHEEL_SIZE} ${WHEEL_SIZE}`}
@@ -145,32 +164,32 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
                         const path = `M ${CENTER} ${CENTER} L ${start[0]} ${start[1]} A ${RADIUS} ${RADIUS} 0 ${largeArc} 1 ${end[0]} ${end[1]} Z`;
 
                         const midA = startA + SEGMENT_ANGLE / 2;
-                        const dist = RADIUS * 0.75;
+                        const dist = RADIUS * 0.72;
                         const tx = CENTER + dist * Math.cos(midA * Math.PI / 180);
                         const ty = CENTER + dist * Math.sin(midA * Math.PI / 180);
 
-                        // Simple Rotation: Always +90 tangent
+                        // Flip Logic for Text Readability
                         let rot = midA + 90;
                         if (midA > 90 && midA < 270) rot += 180;
 
                         return (
                             <g key={i}>
-                                <path d={path} fill={seg.color} stroke="#FFF" strokeWidth="2" />
+                                <path d={path} fill={seg.color} stroke="#FFF" strokeWidth="1" />
                                 <g transform={`translate(${tx}, ${ty}) rotate(${rot})`}>
                                     <text
-                                        y={midA > 90 && midA < 270 ? 20 : -10}
+                                        y={midA > 90 && midA < 270 ? 25 : -10}
                                         textAnchor="middle"
-                                        fontSize="28"
+                                        fontSize="32"
                                     >
                                         {seg.emoji}
                                     </text>
                                     <text
-                                        y={midA > 90 && midA < 270 ? -10 : 20}
+                                        y={midA > 90 && midA < 270 ? -5 : 20}
                                         textAnchor="middle"
-                                        fontSize="12"
+                                        fontSize="14"
                                         fontWeight="bold"
-                                        fill={seg.textCol || '#fff'}
-                                        style={{ fontFamily: 'Arial, sans-serif' }}
+                                        fill={seg.textCol || '#000'}
+                                        style={{ fontFamily: 'Arial, user-select: none' }}
                                     >
                                         {seg.name}
                                     </text>
@@ -179,20 +198,19 @@ export default function LuckyWheel({ segments, spinning, prizeIndex, onStop }) {
                         );
                     })}
                 </svg>
-            </div>
 
-            {/* 3. POINTER (Simple Triangle Top) */}
-            <div className="absolute left-1/2" style={{ top: '-15px', transform: 'translateX(-50%)', zIndex: 30, filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.3))' }}>
-                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                    <path d="M20 40L5 10C5 10 10 0 20 0C30 0 35 10 35 10L20 40Z" fill="#DC2626" stroke="#FFF" strokeWidth="3" />
-                </svg>
+                {/* CENTER CAP */}
+                <div style={{
+                    position: 'absolute',
+                    top: '50%', left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: '40px', height: '40px',
+                    backgroundColor: '#374151',
+                    borderRadius: '50%',
+                    border: '3px solid #FFF',
+                    zIndex: 20
+                }}></div>
             </div>
-
-            {/* 4. CENTER CAP (Small) */}
-            <div className="absolute top-1/2 left-1/2" style={{ transform: 'translate(-50%, -50%)', width: '50px', height: '50px', borderRadius: '50%', background: '#FFF', border: '4px solid #F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20, boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}>
-                <span style={{ fontSize: '1.5rem' }}>🎯</span>
-            </div>
-
         </div>
     );
 }
